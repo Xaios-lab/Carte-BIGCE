@@ -102,21 +102,6 @@ button.icon:active { transform: scale(.92); }
 #joystick .knob { width: 38px; height: 38px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffe6a3, #d29a2b); box-shadow: 0 2px 10px rgba(0, 0, 0, .5); }
 @media (pointer: fine) { #joystick { display: none; } }
 
-/* ------------------------------------------------------------ Pavé directionnel (mobile) */
-#dpad { position: absolute; left: 50%; bottom: calc(74px + var(--sab)); transform: translateX(-50%); z-index: 6; width: 150px; height: 150px; display: none; pointer-events: none; }
-@media (pointer: coarse) { #dpad { display: block; } }
-#dpad button {
-  position: absolute; width: 48px; height: 48px; padding: 0; border-radius: 14px; pointer-events: auto;
-  border: 1px solid rgba(255, 255, 255, .35); background: rgba(255, 255, 255, .10); color: rgba(255, 240, 200, .9);
-  backdrop-filter: blur(1.5px) saturate(1.5) brightness(1.25); -webkit-backdrop-filter: blur(1.5px) saturate(1.5) brightness(1.25);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 4px 14px rgba(0, 0, 0, .25);
-  display: grid; place-items: center; touch-action: none; transition: background .08s, transform .08s;
-}
-#dpad button svg { width: 26px; height: 26px; fill: currentColor; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .6)); }
-#dpad button.on { background: rgba(255, 220, 120, .45); transform: scale(.94); }
-#dpad .up { left: 51px; top: 0; } #dpad .down { left: 51px; bottom: 0; } #dpad .left { left: 0; top: 51px; } #dpad .right { right: 0; top: 51px; }
-@media (pointer: coarse) and (orientation: landscape) { #dpad { left: auto; right: 14px; transform: none; bottom: calc(70px + var(--sab)); } }
-
 /* ------------------------------------------------------------ Effets (overlay) */
 #fx { position: absolute; inset: 0; z-index: 7; pointer-events: none; overflow: hidden; }
 .popup { position: absolute; left: 0; top: 0; font-family: var(--font-title); font-size: 26px; color: var(--teal); text-shadow: 0 0 12px rgba(122, 245, 216, .9), 0 2px 0 #000; white-space: nowrap; }
@@ -131,36 +116,36 @@ button.icon:active { transform: scale(.92); }
 @keyframes fall { 0% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(110vh) rotate(var(--rot)); opacity: .6; } }
 
 /* --- Retournement du Mana (logo en gros + flammes dorées) --- */
-.mana-burst { position: absolute; left: 50%; top: 42%; width: 0; height: 0; perspective: 900px; }
+.mana-burst { position: absolute; left: 50%; top: 42%; width: 0; height: 0; perspective: 900px; transition: none; }
 .mana-burst .fire {
-  position: absolute; left: 50%; top: 50%; width: min(78vw, 420px); aspect-ratio: 1; transform: translate(-50%, -50%);
+  position: absolute; left: 50%; top: 50%; width: min(60vw, 320px); aspect-ratio: 1; transform: translate(-50%, -50%);
   border-radius: 50%;
   background: conic-gradient(from 0deg, rgba(255, 170, 30, 0) 0deg, rgba(255, 200, 60, .95) 40deg, rgba(255, 120, 20, 0) 90deg, rgba(255, 230, 120, .9) 150deg, rgba(255, 90, 10, 0) 200deg, rgba(255, 210, 80, .95) 260deg, rgba(255, 140, 20, 0) 320deg, rgba(255, 200, 60, .9) 360deg);
   -webkit-mask: radial-gradient(circle, transparent 36%, #000 44%, #000 60%, transparent 72%); mask: radial-gradient(circle, transparent 36%, #000 44%, #000 60%, transparent 72%);
   filter: blur(3px) saturate(1.4); mix-blend-mode: screen;
-  animation: fire 2.4s cubic-bezier(.2, .8, .3, 1) forwards;
+  animation: fire 1.5s cubic-bezier(.2, .8, .3, 1) forwards;
 }
-.mana-burst .fire.b { animation-direction: reverse; animation-duration: 2.2s; filter: blur(12px); opacity: .6; transform: translate(-50%, -50%) scale(1.15); }
+.mana-burst .fire.b { animation-direction: reverse; animation-duration: 1.4s; filter: blur(12px); opacity: .6; transform: translate(-50%, -50%) scale(1.15); }
 @keyframes fire { 0% { transform: translate(-50%, -50%) rotate(0) scale(.2); opacity: 0; } 15% { opacity: 1; } 70% { opacity: .9; } 100% { transform: translate(-50%, -50%) rotate(540deg) scale(1.35); opacity: 0; } }
-.mana-burst .coin { position: absolute; left: 50%; top: 50%; width: min(46vw, 240px); aspect-ratio: 1; margin: calc(min(46vw, 240px) / -2) 0 0 calc(min(46vw, 240px) / -2); transform-style: preserve-3d; animation: coin 2.4s cubic-bezier(.25, .9, .3, 1) forwards; }
+.mana-burst .coin { position: absolute; left: 50%; top: 50%; width: min(36vw, 180px); aspect-ratio: 1; margin: calc(min(36vw, 180px) / -2) 0 0 calc(min(36vw, 180px) / -2); transform-style: preserve-3d; animation: coin 1.6s cubic-bezier(.25, .9, .3, 1) forwards; }
 .mana-burst .side { position: absolute; inset: 0; border-radius: 50%; backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 0 0 6px rgba(255, 215, 120, .9), 0 0 60px 10px rgba(255, 200, 80, .8), inset 0 0 20px rgba(0, 0, 0, .2); background: #fff; overflow: hidden; }
 .mana-burst .side img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .mana-burst .side.back { transform: rotateY(180deg); }
 @keyframes coin {
   0% { transform: scale(.15) rotateY(-180deg); opacity: 0; }
-  18% { transform: scale(1.25) rotateY(360deg); opacity: 1; }
-  28% { transform: scale(1) rotateY(360deg); opacity: 1; }
-  82% { transform: scale(1) rotateY(360deg); opacity: 1; }
-  100% { transform: scale(.4) rotateY(360deg) translateY(-120px); opacity: 0; }
+  22% { transform: scale(1.2) rotateY(360deg); opacity: 1; }
+  32% { transform: scale(1) rotateY(360deg); opacity: 1; }
+  78% { transform: scale(1) rotateY(360deg); opacity: 1; }
+  100% { transform: scale(.4) rotateY(360deg) translateY(-90px); opacity: 0; }
 }
-.mana-burst.card .coin { width: min(70vw, 360px); aspect-ratio: 1010 / 642; margin: calc(min(70vw, 360px) * 642 / 1010 / -2) 0 0 calc(min(70vw, 360px) / -2); }
+.mana-burst.card .coin { width: min(56vw, 280px); aspect-ratio: 1010 / 642; margin: calc(min(56vw, 280px) * 642 / 1010 / -2) 0 0 calc(min(56vw, 280px) / -2); }
 .mana-burst.card .side { border-radius: 18px; }
-.mana-burst.card .label { top: calc(min(70vw, 360px) * 642 / 1010 / 2 + 22px); }
+.mana-burst.card .label { top: calc(min(56vw, 280px) * 642 / 1010 / 2 + 14px); }
 .mana-burst.card .fire { background: conic-gradient(from 0deg, rgba(120,220,255,0) 0deg, rgba(190,240,255,.95) 40deg, rgba(80,180,255,0) 90deg, rgba(220,250,255,.9) 150deg, rgba(60,160,255,0) 200deg, rgba(180,235,255,.95) 260deg, rgba(90,190,255,0) 320deg, rgba(190,240,255,.9) 360deg); }
 .mana-burst.card .label em { color: #bfefff; text-shadow: 0 0 20px rgba(120,220,255,.9), 0 3px 0 #0a2a40; }
-.mana-burst .label { position: absolute; left: 50%; top: calc(min(46vw, 240px) / 2 + 22px); transform: translateX(-50%); text-align: center; white-space: nowrap; animation: label 2.4s ease-out forwards; }
-.mana-burst .label em { display: block; font-style: normal; font-family: var(--font-title); font-size: clamp(28px, 7vw, 54px); color: var(--gold-2); text-shadow: 0 0 20px rgba(255, 200, 80, .9), 0 3px 0 #3a2300; letter-spacing: .08em; }
-.mana-burst .label strong { display: block; font-size: clamp(16px, 4vw, 26px); font-weight: 800; color: #fff; text-shadow: 0 2px 8px #000; letter-spacing: .06em; text-transform: uppercase; }
+.mana-burst .label { position: absolute; left: 50%; top: calc(min(36vw, 180px) / 2 + 14px); transform: translateX(-50%); text-align: center; white-space: nowrap; animation: label 1.6s ease-out forwards; }
+.mana-burst .label em { display: block; font-style: normal; font-family: var(--font-title); font-size: clamp(24px, 6vw, 42px); color: var(--gold-2); text-shadow: 0 0 20px rgba(255, 200, 80, .9), 0 3px 0 #3a2300; letter-spacing: .08em; }
+.mana-burst .label strong { display: block; font-size: clamp(14px, 3.5vw, 22px); font-weight: 800; color: #fff; text-shadow: 0 2px 8px #000; letter-spacing: .06em; text-transform: uppercase; }
 .mana-burst .label span { display: block; font-size: 13px; color: var(--teal); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; margin-top: 4px; text-shadow: 0 0 10px rgba(122, 245, 216, .8); }
 @keyframes label { 0%, 10% { opacity: 0; transform: translateX(-50%) translateY(20px); } 25% { opacity: 1; transform: translateX(-50%) translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; } }
 
@@ -231,14 +216,6 @@ h2 { font-family: var(--font-title); font-size: clamp(34px, 9vw, 58px); margin: 
     <div id="msg" class="msg"></div>
     <div id="fx"></div>
     <div id="joystick"><div class="knob"></div></div>
-
-    <!-- Pavé directionnel (mobile) -->
-    <nav id="dpad" aria-label="Direction">
-      <button class="no-joy up" data-dir="up" aria-label="Haut"><svg viewBox="0 0 24 24"><path d="M12 5l7 8H5z"/></svg></button>
-      <button class="no-joy left" data-dir="left" aria-label="Gauche"><svg viewBox="0 0 24 24"><path d="M5 12l8-7v14z"/></svg></button>
-      <button class="no-joy right" data-dir="right" aria-label="Droite"><svg viewBox="0 0 24 24"><path d="M19 12l-8 7V5z"/></svg></button>
-      <button class="no-joy down" data-dir="down" aria-label="Bas"><svg viewBox="0 0 24 24"><path d="M12 19l-7-8h14z"/></svg></button>
-    </nav>
 
     <!-- Écrans -->
     <div id="screens">
@@ -2562,15 +2539,23 @@ class UI {
   }
 
   /** Grand retournement du logo Mana + flammes dorées + nom du partenaire */
-  manaBurst(partner, { card = false, tag = 'MANA', sub = 'Mange les esprits !' } = {}) {
+  /** avoid = position écran de Pac-Man (0..1) : l'effet s'affiche à l'opposé pour ne pas le masquer */
+  manaBurst(partner, { card = false, tag = 'MANA', sub = 'Mange les esprits !', avoid = null } = {}) {
     const d = document.createElement('div');
     d.className = 'mana-burst' + (card ? ' card' : '');
+    let left = 50, top = 42;
+    if (avoid) {
+      if (avoid.x < 0.42) left = 70;
+      else if (avoid.x > 0.58) left = 30;
+      else top = avoid.y < 0.5 ? 68 : 24;
+    }
+    d.style.left = left + '%'; d.style.top = top + '%';
     d.innerHTML = `
       <div class="fire"></div><div class="fire b"></div>
       <div class="coin"><div class="side front"><img src="${partner.logo}" alt=""></div><div class="side back"><img src="${partner.logo}" alt=""></div></div>
       <div class="label"><em>${tag}</em><strong>${partner.name}</strong><span>${sub}</span></div>`;
     this.el.fx.appendChild(d);
-    setTimeout(() => d.remove(), 2600);
+    setTimeout(() => d.remove(), 1700);
   }
 
   /** Popup de score ancré dans le monde 3D */
@@ -2688,7 +2673,7 @@ class Game {
     this.world = new World({ maze: this.maze, level, theme, logoTextures, quality: this.quality });
     this.scene = this.world.scene;
     this.rig = new CameraRig(this.maze, this.renderer);
-    this.rig.minCellPx = this.isTouch ? 27 : 28;
+    this.rig.minCellPx = this.isTouch ? 31 : 28;
     this._applyInsets();
     this.rig.resize();
 
@@ -2721,12 +2706,9 @@ class Game {
     this.renderer.setAnimationLoop(() => this._frame());
   }
 
-  /** Zones réservées au HUD (et au pavé directionnel sur mobile) pour le cadrage caméra */
+  /** Zones réservées au HUD pour le cadrage caméra */
   _applyInsets() {
-    const portrait = window.innerHeight >= window.innerWidth;
-    if (!this.isTouch) this.rig.insets = { top: 66, bottom: 84, left: 6, right: 6 };
-    else if (portrait) this.rig.insets = { top: 58, bottom: 236, left: 6, right: 6 };
-    else this.rig.insets = { top: 52, bottom: 64, left: 6, right: 170 };
+    this.rig.insets = this.isTouch ? { top: 58, bottom: 70, left: 6, right: 6 } : { top: 66, bottom: 84, left: 6, right: 6 };
   }
 
   _resize() {
@@ -2743,13 +2725,6 @@ class Game {
     this.input.onAction = () => this._action(false);
     this.input.onPause = () => this.togglePause();
     document.getElementById('btn-play').addEventListener('click', () => this._action(true));
-    for (const b of document.querySelectorAll('#dpad button')) {
-      const d = DIRS[b.dataset.dir];
-      const press = (e) => { e.preventDefault(); this.audio.init(); this.input.onDir(d); b.classList.add('on'); };
-      b.addEventListener('pointerdown', press);
-      b.addEventListener('pointerup', () => b.classList.remove('on'));
-      b.addEventListener('pointerleave', () => b.classList.remove('on'));
-    }
     document.getElementById('btn-retry').addEventListener('click', () => this.newGame());
     document.getElementById('btn-next').addEventListener('click', () => this.newGame());
     document.getElementById('btn-resume').addEventListener('click', () => this.togglePause());
@@ -2971,6 +2946,12 @@ class Game {
     if (mana) this._eatMana(mana);
   }
 
+  /** Position écran de Pac-Man (0..1), pour placer les effets sans le masquer */
+  _pacScreen() {
+    const v = this.pac.mesh.position.clone().project(this.rig.camera);
+    return { x: (v.x + 1) / 2, y: (1 - v.y) / 2 };
+  }
+
   _eatMana(mana) {
     this.world.eatMana(mana);
     this._addScore(SCORE.mana);
@@ -2979,7 +2960,7 @@ class Game {
     this.ghosts.forEach((g) => g.setFrightened(true));
     this.pac.powered = true;
     this.ui.setPartnerState(mana.partnerId, true);
-    this.ui.manaBurst(mana.partner);
+    this.ui.manaBurst(mana.partner, { avoid: this._pacScreen() });
     this.ui.flash('gold');
     this.audio.eatMana();
     this.timeScale = 0.25;      // ralenti dramatique
@@ -3020,7 +3001,7 @@ class Game {
     this.ghostCombo = 0;
     this.ghosts.forEach((g) => g.setFrozen(true));
     this.pac.powered = true;
-    this.ui.manaBurst({ logo: this.level.bonus.image, name: this.level.bonus.label }, { card: true, tag: 'GEL !', sub: 'Les esprits sont figés : mange-les !' });
+    this.ui.manaBurst({ logo: this.level.bonus.image, name: this.level.bonus.label }, { card: true, tag: 'GEL !', sub: 'Les esprits sont figés : mange-les !', avoid: this._pacScreen() });
     this.ui.flash('white');
     this.audio.eatMana();
     this.timeScale = 0.3;

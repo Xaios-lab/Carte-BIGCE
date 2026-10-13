@@ -66,7 +66,7 @@ export class Game {
     this.world = new World({ maze: this.maze, level, theme, logoTextures, quality: this.quality });
     this.scene = this.world.scene;
     this.rig = new CameraRig(this.maze, this.renderer);
-    this.rig.minCellPx = this.isTouch ? 27 : 28;
+    this.rig.minCellPx = this.isTouch ? 31 : 28;
     this._applyInsets();
     this.rig.resize();
 
@@ -99,12 +99,9 @@ export class Game {
     this.renderer.setAnimationLoop(() => this._frame());
   }
 
-  /** Zones réservées au HUD (et au pavé directionnel sur mobile) pour le cadrage caméra */
+  /** Zones réservées au HUD pour le cadrage caméra */
   _applyInsets() {
-    const portrait = window.innerHeight >= window.innerWidth;
-    if (!this.isTouch) this.rig.insets = { top: 66, bottom: 84, left: 6, right: 6 };
-    else if (portrait) this.rig.insets = { top: 58, bottom: 236, left: 6, right: 6 };
-    else this.rig.insets = { top: 52, bottom: 64, left: 6, right: 170 };
+    this.rig.insets = this.isTouch ? { top: 58, bottom: 70, left: 6, right: 6 } : { top: 66, bottom: 84, left: 6, right: 6 };
   }
 
   _resize() {
@@ -121,13 +118,6 @@ export class Game {
     this.input.onAction = () => this._action(false);
     this.input.onPause = () => this.togglePause();
     document.getElementById('btn-play').addEventListener('click', () => this._action(true));
-    for (const b of document.querySelectorAll('#dpad button')) {
-      const d = DIRS[b.dataset.dir];
-      const press = (e) => { e.preventDefault(); this.audio.init(); this.input.onDir(d); b.classList.add('on'); };
-      b.addEventListener('pointerdown', press);
-      b.addEventListener('pointerup', () => b.classList.remove('on'));
-      b.addEventListener('pointerleave', () => b.classList.remove('on'));
-    }
     document.getElementById('btn-retry').addEventListener('click', () => this.newGame());
     document.getElementById('btn-next').addEventListener('click', () => this.newGame());
     document.getElementById('btn-resume').addEventListener('click', () => this.togglePause());
@@ -349,6 +339,12 @@ export class Game {
     if (mana) this._eatMana(mana);
   }
 
+  /** Position écran de Pac-Man (0..1), pour placer les effets sans le masquer */
+  _pacScreen() {
+    const v = this.pac.mesh.position.clone().project(this.rig.camera);
+    return { x: (v.x + 1) / 2, y: (1 - v.y) / 2 };
+  }
+
   _eatMana(mana) {
     this.world.eatMana(mana);
     this._addScore(SCORE.mana);
@@ -357,7 +353,7 @@ export class Game {
     this.ghosts.forEach((g) => g.setFrightened(true));
     this.pac.powered = true;
     this.ui.setPartnerState(mana.partnerId, true);
-    this.ui.manaBurst(mana.partner);
+    this.ui.manaBurst(mana.partner, { avoid: this._pacScreen() });
     this.ui.flash('gold');
     this.audio.eatMana();
     this.timeScale = 0.25;      // ralenti dramatique
@@ -398,7 +394,7 @@ export class Game {
     this.ghostCombo = 0;
     this.ghosts.forEach((g) => g.setFrozen(true));
     this.pac.powered = true;
-    this.ui.manaBurst({ logo: this.level.bonus.image, name: this.level.bonus.label }, { card: true, tag: 'GEL !', sub: 'Les esprits sont figés : mange-les !' });
+    this.ui.manaBurst({ logo: this.level.bonus.image, name: this.level.bonus.label }, { card: true, tag: 'GEL !', sub: 'Les esprits sont figés : mange-les !', avoid: this._pacScreen() });
     this.ui.flash('white');
     this.audio.eatMana();
     this.timeScale = 0.3;

@@ -68,15 +68,23 @@ export class UI {
   }
 
   /** Grand retournement du logo Mana + flammes dorées + nom du partenaire */
-  manaBurst(partner, { card = false, tag = 'MANA', sub = 'Mange les esprits !' } = {}) {
+  /** avoid = position écran de Pac-Man (0..1) : l'effet s'affiche à l'opposé pour ne pas le masquer */
+  manaBurst(partner, { card = false, tag = 'MANA', sub = 'Mange les esprits !', avoid = null } = {}) {
     const d = document.createElement('div');
     d.className = 'mana-burst' + (card ? ' card' : '');
+    let left = 50, top = 42;
+    if (avoid) {
+      if (avoid.x < 0.42) left = 70;
+      else if (avoid.x > 0.58) left = 30;
+      else top = avoid.y < 0.5 ? 68 : 24;
+    }
+    d.style.left = left + '%'; d.style.top = top + '%';
     d.innerHTML = `
       <div class="fire"></div><div class="fire b"></div>
       <div class="coin"><div class="side front"><img src="${partner.logo}" alt=""></div><div class="side back"><img src="${partner.logo}" alt=""></div></div>
       <div class="label"><em>${tag}</em><strong>${partner.name}</strong><span>${sub}</span></div>`;
     this.el.fx.appendChild(d);
-    setTimeout(() => d.remove(), 2600);
+    setTimeout(() => d.remove(), 1700);
   }
 
   /** Popup de score ancré dans le monde 3D */
