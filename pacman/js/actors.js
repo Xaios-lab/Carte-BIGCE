@@ -286,7 +286,7 @@ export class Ghost extends Mover {
 
   _buildMesh() {
     const { top, skirt } = ghostGeometry();
-    this.bodyMat = new THREE.MeshStandardMaterial({ color: this.baseColor, emissive: this.baseColor, emissiveIntensity: 0.35, transparent: true, opacity: 0.9, roughness: 0.35, metalness: 0.0 });
+    this.bodyMat = new THREE.MeshStandardMaterial({ color: this.baseColor, emissive: this.baseColor, emissiveIntensity: 0.6, transparent: true, opacity: 0.92, roughness: 0.35, metalness: 0.0 });
     const g = new THREE.Group();
     const m1 = new THREE.Mesh(top, this.bodyMat), m2 = new THREE.Mesh(skirt, this.bodyMat);
     m1.castShadow = m2.castShadow = true;

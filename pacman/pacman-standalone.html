@@ -295,18 +295,19 @@ const THEMES = {
   jungle: {
     id: 'jungle',
     name: 'Jungle polynésienne',
-    background: 0x061a1c,
-    fog: { color: 0x061a1c, density: 0.028 },
-    hemi: { sky: 0x9fe6da, ground: 0x1c3a24, intensity: 1.15 },
-    sun:  { color: 0xfff1d0, intensity: 1.9 },
-    wall: { color: 0x6e7c6a, moss: 0x6aa044, glow: 0x7af5d8, glowIntensity: 1.0 },
-    floor: { path: 0x3d4858, stone: 0x1a2028, carve: 0xe8d7b0, pathEdge: 0x55647a },
-    dot: 0xffe6a3,
-    ground: 0x0b2a14,
-    torch: { color: 0xffa040, intensity: 9, distance: 9 },
-    firefly: 0xd4ff9a,
-    pacman: { body: 0xffd43b, flower: 0xfff7e8 },
-    leaves: { a: 0x3f9a3a, b: 0x1f6b3c, c: 0x7cc96a },
+    background: 0x07232a,
+    fog: { color: 0x07232a, density: 0.02 },
+    hemi: { sky: 0xc8fff2, ground: 0x24502c, intensity: 1.45 },
+    sun:  { color: 0xfff4d6, intensity: 2.3 },
+    wall: { color: 0x8da27e, moss: 0x7ed348, glow: 0x5dffd9, glowIntensity: 1.0 },
+    floor: { path: 0x4a5c80, stone: 0x1b2230, carve: 0xffd27a, pathEdge: 0x6d82ad },
+    dot: 0xffcf4d,
+    ground: 0x174a20,
+    torch: { color: 0xffa040, intensity: 14, distance: 11 },
+    firefly: 0xe2ff9a,
+    pacman: { body: 0xffd23a, flower: 0xfff7e8 },
+    leaves: { a: 0x4fc04a, b: 0x2a8a4c, c: 0x8fe070 },
+    flowers: [0xff3b6b, 0xff2fa8, 0xff8c1a, 0xffe14d],
   },
 };
 
@@ -318,10 +319,10 @@ const LEVELS = [
     theme: 'jungle',
     // Les 4 Manas (coins) utilisent les logos dans cet ordre : haut-gauche, haut-droit, bas-gauche, bas-droit
     mana: ['agritech', 'ace', 'gan', 'taapuna'],
-    speeds: { pacman: 7.4, pacmanEating: 6.9, ghost: 6.9, frightened: 4.4, tunnel: 3.9, eyes: 15 },
-    frightenedTime: 7,          // secondes d'invincibilité (Mana)
-    scatterChase: [7, 20, 7, 20, 5, 20, 5, Infinity],
-    ghostRelease: { pinky: 0, inky: 24, clyde: 56 }, // nb de pointillés mangés avant sortie
+    speeds: { pacman: 7.6, pacmanEating: 7.2, ghost: 5.9, frightened: 3.8, tunnel: 3.4, eyes: 15 },
+    frightenedTime: 10,         // secondes d'invincibilité (Mana)
+    scatterChase: [10, 18, 9, 18, 7, 18, 5, Infinity],
+    ghostRelease: { pinky: 8, inky: 45, clyde: 90 }, // nb de pointillés mangés avant sortie
     bonus: { at: [60, 150], duration: 10, score: 500, label: 'Carte BIG CE' },
     maze: [
       '#####################',
@@ -744,6 +745,31 @@ function leafTexture(color, variant = 0) {
   return t;
 }
 
+/** Fleur d'hibiscus (blanche : la couleur vient de l'instance) */
+function flowerTexture() {
+  const S = 128;
+  const c = canvas(S, S), ctx = c.getContext('2d');
+  ctx.translate(S / 2, S / 2);
+  for (let i = 0; i < 5; i++) {
+    ctx.save();
+    ctx.rotate((i / 5) * Math.PI * 2);
+    const g = ctx.createLinearGradient(0, 0, 0, -S * 0.45);
+    g.addColorStop(0, 'rgba(255,255,255,0.75)'); g.addColorStop(1, 'rgba(255,255,255,1)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(S * 0.3, -S * 0.1, S * 0.28, -S * 0.5, 0, -S * 0.47);
+    ctx.bezierCurveTo(-S * 0.28, -S * 0.5, -S * 0.3, -S * 0.1, 0, 0);
+    ctx.fill();
+    ctx.restore();
+  }
+  ctx.fillStyle = 'rgba(255,230,120,1)';
+  ctx.beginPath(); ctx.arc(0, 0, S * 0.07, 0, 7); ctx.fill();
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
 /** Halo radial doux (sprites, lucioles) */
 function glowTexture(inner = 'rgba(255,255,255,1)', outer = 'rgba(255,255,255,0)') {
   const S = 128;
@@ -870,7 +896,7 @@ function loadImageTexture(url) {
   });
 }
 
-return { rng, stoneTexture, floorTexture, groundTexture, leafTexture, glowTexture, flameTexture, rayTexture, tattooBandTexture, cardTexture, tikiFaceTexture, loadImageTexture };
+return { rng, stoneTexture, floorTexture, groundTexture, leafTexture, flowerTexture, glowTexture, flameTexture, rayTexture, tattooBandTexture, cardTexture, tikiFaceTexture, loadImageTexture };
 })();
 const __mod_world = (() => {
 // ---------------------------------------------------------------------------
@@ -1149,7 +1175,7 @@ class World {
       g.position.set(w.x, 0, w.z);
 
       // pièce (logo recto/verso)
-      const coinGeo = new THREE.CylinderGeometry(0.52, 0.52, 0.09, 48);
+      const coinGeo = new THREE.CylinderGeometry(0.72, 0.72, 0.1, 56);
       const face = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
       const texBack = tex.clone();
       texBack.wrapS = THREE.RepeatWrapping; texBack.repeat.x = -1; texBack.offset.x = 1; texBack.needsUpdate = true;
@@ -1161,15 +1187,15 @@ class World {
       const tilt = new THREE.Group();
       tilt.rotation.x = -THREE.MathUtils.degToRad(30);
       tilt.add(coin);
-      const spin = new THREE.Group();
+      const spin = new THREE.Group(); // (ne tourne plus : simple flottement)
       spin.add(tilt);
-      spin.position.y = 0.85;
+      spin.position.y = 1.05;
       g.add(spin);
 
       // halo coloré
       const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: partner.color === '#1b1b1b' ? 0x9ad8ff : partner.color, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
-      halo.scale.set(2.2, 2.2, 1);
-      halo.position.y = 0.85;
+      halo.scale.set(3.0, 3.0, 1);
+      halo.position.y = 1.05;
       g.add(halo);
       // halo au sol
       const ground = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, color: partner.color === '#1b1b1b' ? 0x9ad8ff : partner.color, toneMapped: false }));
@@ -1178,7 +1204,7 @@ class World {
 
       // fines lianes qui se balancent devant le logo
       const vines = new THREE.Group();
-      vines.position.set(0, 2.4, 0.55);
+      vines.position.set(0, 2.7, 0.75);
       const vineMat = new THREE.MeshStandardMaterial({ color: 0x3e7a2d, roughness: 0.9 });
       const leafMat = new THREE.MeshStandardMaterial({ map: leafTex, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.8 });
       for (let v = 0; v < 3; v++) {
@@ -1214,11 +1240,12 @@ class World {
     this.animated.push((t, dt) => {
       for (const m of this.manas) {
         if (m.eaten) continue;
-        m.spin.rotation.y += dt * 1.6;
-        m.spin.position.y = 0.85 + 0.08 * Math.sin(t * 2 + m.phase);
-        const k = 1.9 + 0.25 * Math.sin(t * 3.1 + m.phase);
+        m.spin.position.y = 1.05 + 0.1 * Math.sin(t * 1.8 + m.phase);
+        m.spin.rotation.z = 0.06 * Math.sin(t * 1.3 + m.phase);
+        m.spin.rotation.y = 0.12 * Math.sin(t * 0.9 + m.phase);
+        const k = 2.8 + 0.3 * Math.sin(t * 3.1 + m.phase);
         m.halo.scale.set(k, k, 1);
-        m.halo.material.opacity = 0.45 + 0.15 * Math.sin(t * 3.1 + m.phase);
+        m.halo.material.opacity = 0.6 + 0.15 * Math.sin(t * 3.1 + m.phase);
         for (const pv of m.vines.children) pv.rotation.z = Math.sin(t * 1.25 + pv.userData.phase) * pv.userData.amp;
         m.vines.children.forEach((pv, k2) => { pv.rotation.x = Math.sin(t * 0.9 + pv.userData.phase + k2) * 0.05; });
       }
@@ -1272,7 +1299,7 @@ class World {
         const near = z > H / 2;       // côté caméra : plus petit pour ne pas masquer
         const far = z < -H / 2 - 1;
         const s = near ? 0.6 + rand() * 0.5 : far ? 1.4 + rand() * 1.6 : 0.9 + rand() * 1.2;
-        im.userData.items.push({ x, z, s, yaw: rand() * Math.PI * 2, lean: (rand() - 0.5) * 0.5, phase: rand() * 6.28, color: new THREE.Color().setHSL(0.28 + rand() * 0.1, 0.5 + rand() * 0.3, 0.3 + rand() * 0.2) });
+        im.userData.items.push({ x, z, s, yaw: rand() * Math.PI * 2, lean: (rand() - 0.5) * 0.5, phase: rand() * 6.28, color: new THREE.Color().setHSL(0.25 + rand() * 0.13, 0.75 + rand() * 0.25, 0.4 + rand() * 0.2) });
       }
       im.userData.items.forEach((it, i) => im.setColorAt(i, it.color));
       im.instanceColor.needsUpdate = true;
@@ -1293,6 +1320,29 @@ class World {
       im.instanceMatrix.needsUpdate = true;
     };
     this.animated.push((t) => { sway(leavesA, t); sway(leavesB, t); });
+
+    // --- fleurs tropicales (hibiscus) : touches de couleur dans le feuillage
+    const flowerTex = TEX.flowerTexture();
+    const flowerGeo = new THREE.PlaneGeometry(0.7, 0.7).translate(0, 0.35, 0);
+    const flowers = new THREE.InstancedMesh(flowerGeo, new THREE.MeshBasicMaterial({ map: flowerTex, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide, toneMapped: false }), quality.flowers);
+    flowers.userData.items = [];
+    for (let i = 0; i < quality.flowers; i++) {
+      let x, z, tries = 0;
+      do { x = (rand() - 0.5) * (W + 9); z = (rand() - 0.5) * (H + 9); tries++; } while (Math.abs(x) < W / 2 + 0.9 && Math.abs(z) < H / 2 + 0.9 && tries < 50);
+      const near = z > H / 2;
+      flowers.userData.items.push({ x, z, s: near ? 0.6 + rand() * 0.3 : 0.8 + rand() * 0.7, yaw: rand() * 6.28, phase: rand() * 6.28, color: new THREE.Color(theme.flowers[i % theme.flowers.length]) });
+    }
+    flowers.userData.items.forEach((it, i) => flowers.setColorAt(i, it.color));
+    flowers.instanceColor.needsUpdate = true;
+    this.scene.add(flowers);
+    this.animated.push((t) => {
+      flowers.userData.items.forEach((it, i) => {
+        e.set(Math.sin(t * 0.9 + it.phase) * 0.08, it.yaw, Math.sin(t * 1.2 + it.phase) * 0.06);
+        q.setFromEuler(e); p.set(it.x, 0.15, it.z); sc.set(it.s, it.s, it.s); m.compose(p, q, sc);
+        flowers.setMatrixAt(i, m);
+      });
+      flowers.instanceMatrix.needsUpdate = true;
+    });
 
     // --- palmiers / grands arbres (côté éloigné et latéraux)
     const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4a3621, roughness: 0.95 });
@@ -1740,7 +1790,7 @@ class Ghost extends Mover {
 
   _buildMesh() {
     const { top, skirt } = ghostGeometry();
-    this.bodyMat = new THREE.MeshStandardMaterial({ color: this.baseColor, emissive: this.baseColor, emissiveIntensity: 0.35, transparent: true, opacity: 0.9, roughness: 0.35, metalness: 0.0 });
+    this.bodyMat = new THREE.MeshStandardMaterial({ color: this.baseColor, emissive: this.baseColor, emissiveIntensity: 0.6, transparent: true, opacity: 0.92, roughness: 0.35, metalness: 0.0 });
     const g = new THREE.Group();
     const m1 = new THREE.Mesh(top, this.bodyMat), m2 = new THREE.Mesh(skirt, this.bodyMat);
     m1.castShadow = m2.castShadow = true;
@@ -2512,7 +2562,7 @@ class Game {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.25;
+    this.renderer.toneMappingExposure = 1.4;
     // ?q=low force la qualité réduite (vieux mobiles) ; sinon adaptation automatique
     const q = new URLSearchParams(location.search).get('q');
     const low = q === 'low';
@@ -2522,6 +2572,7 @@ class Game {
       leaves: low ? 50 : this.isTouch ? 90 : 150,
       fireflies: low ? 30 : this.isTouch ? 50 : 90,
       torchLights: low ? 1 : this.isTouch ? 2 : 4,
+      flowers: low ? 25 : this.isTouch ? 40 : 60,
     };
     if (low) { this.renderer.setPixelRatio(1); this.renderer.shadowMap.enabled = false; this.lowQualityApplied = true; }
     this.ui = new UI(PARTNERS);
@@ -2751,7 +2802,7 @@ class Game {
       let release = false;
       if (g.state === 'house') {
         const need = L.ghostRelease[g.def.id] ?? 0;
-        release = this.dotsEaten >= need || this.dotTimer > 4;
+        release = this.dotsEaten >= need || this.dotTimer > 7;
         if (release) this.dotTimer = 0;
       }
       g.update({ dt, speeds: L.speeds, mode: this.mode, pac: this.pac, blinky: this.ghostByName.blinky, frightTimer: this.frightTimer, houseCenter: maze.houseCenter, houseExit: maze.houseExit, release });

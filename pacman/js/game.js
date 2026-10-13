@@ -24,7 +24,7 @@ export class Game {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.25;
+    this.renderer.toneMappingExposure = 1.4;
     // ?q=low force la qualité réduite (vieux mobiles) ; sinon adaptation automatique
     const q = new URLSearchParams(location.search).get('q');
     const low = q === 'low';
@@ -34,6 +34,7 @@ export class Game {
       leaves: low ? 50 : this.isTouch ? 90 : 150,
       fireflies: low ? 30 : this.isTouch ? 50 : 90,
       torchLights: low ? 1 : this.isTouch ? 2 : 4,
+      flowers: low ? 25 : this.isTouch ? 40 : 60,
     };
     if (low) { this.renderer.setPixelRatio(1); this.renderer.shadowMap.enabled = false; this.lowQualityApplied = true; }
     this.ui = new UI(PARTNERS);
@@ -263,7 +264,7 @@ export class Game {
       let release = false;
       if (g.state === 'house') {
         const need = L.ghostRelease[g.def.id] ?? 0;
-        release = this.dotsEaten >= need || this.dotTimer > 4;
+        release = this.dotsEaten >= need || this.dotTimer > 7;
         if (release) this.dotTimer = 0;
       }
       g.update({ dt, speeds: L.speeds, mode: this.mode, pac: this.pac, blinky: this.ghostByName.blinky, frightTimer: this.frightTimer, houseCenter: maze.houseCenter, houseExit: maze.houseExit, release });

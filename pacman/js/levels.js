@@ -22,18 +22,19 @@ export const THEMES = {
   jungle: {
     id: 'jungle',
     name: 'Jungle polynésienne',
-    background: 0x061a1c,
-    fog: { color: 0x061a1c, density: 0.028 },
-    hemi: { sky: 0x9fe6da, ground: 0x1c3a24, intensity: 1.15 },
-    sun:  { color: 0xfff1d0, intensity: 1.9 },
-    wall: { color: 0x6e7c6a, moss: 0x6aa044, glow: 0x7af5d8, glowIntensity: 1.0 },
-    floor: { path: 0x3d4858, stone: 0x1a2028, carve: 0xe8d7b0, pathEdge: 0x55647a },
-    dot: 0xffe6a3,
-    ground: 0x0b2a14,
-    torch: { color: 0xffa040, intensity: 9, distance: 9 },
-    firefly: 0xd4ff9a,
-    pacman: { body: 0xffd43b, flower: 0xfff7e8 },
-    leaves: { a: 0x3f9a3a, b: 0x1f6b3c, c: 0x7cc96a },
+    background: 0x07232a,
+    fog: { color: 0x07232a, density: 0.02 },
+    hemi: { sky: 0xc8fff2, ground: 0x24502c, intensity: 1.45 },
+    sun:  { color: 0xfff4d6, intensity: 2.3 },
+    wall: { color: 0x8da27e, moss: 0x7ed348, glow: 0x5dffd9, glowIntensity: 1.0 },
+    floor: { path: 0x4a5c80, stone: 0x1b2230, carve: 0xffd27a, pathEdge: 0x6d82ad },
+    dot: 0xffcf4d,
+    ground: 0x174a20,
+    torch: { color: 0xffa040, intensity: 14, distance: 11 },
+    firefly: 0xe2ff9a,
+    pacman: { body: 0xffd23a, flower: 0xfff7e8 },
+    leaves: { a: 0x4fc04a, b: 0x2a8a4c, c: 0x8fe070 },
+    flowers: [0xff3b6b, 0xff2fa8, 0xff8c1a, 0xffe14d],
   },
 };
 
@@ -45,10 +46,10 @@ export const LEVELS = [
     theme: 'jungle',
     // Les 4 Manas (coins) utilisent les logos dans cet ordre : haut-gauche, haut-droit, bas-gauche, bas-droit
     mana: ['agritech', 'ace', 'gan', 'taapuna'],
-    speeds: { pacman: 7.4, pacmanEating: 6.9, ghost: 6.9, frightened: 4.4, tunnel: 3.9, eyes: 15 },
-    frightenedTime: 7,          // secondes d'invincibilité (Mana)
-    scatterChase: [7, 20, 7, 20, 5, 20, 5, Infinity],
-    ghostRelease: { pinky: 0, inky: 24, clyde: 56 }, // nb de pointillés mangés avant sortie
+    speeds: { pacman: 7.6, pacmanEating: 7.2, ghost: 5.9, frightened: 3.8, tunnel: 3.4, eyes: 15 },
+    frightenedTime: 10,         // secondes d'invincibilité (Mana)
+    scatterChase: [10, 18, 9, 18, 7, 18, 5, Infinity],
+    ghostRelease: { pinky: 8, inky: 45, clyde: 90 }, // nb de pointillés mangés avant sortie
     bonus: { at: [60, 150], duration: 10, score: 500, label: 'Carte BIG CE' },
     maze: [
       '#####################',

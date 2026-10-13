@@ -196,6 +196,31 @@ export function leafTexture(color, variant = 0) {
   return t;
 }
 
+/** Fleur d'hibiscus (blanche : la couleur vient de l'instance) */
+export function flowerTexture() {
+  const S = 128;
+  const c = canvas(S, S), ctx = c.getContext('2d');
+  ctx.translate(S / 2, S / 2);
+  for (let i = 0; i < 5; i++) {
+    ctx.save();
+    ctx.rotate((i / 5) * Math.PI * 2);
+    const g = ctx.createLinearGradient(0, 0, 0, -S * 0.45);
+    g.addColorStop(0, 'rgba(255,255,255,0.75)'); g.addColorStop(1, 'rgba(255,255,255,1)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(S * 0.3, -S * 0.1, S * 0.28, -S * 0.5, 0, -S * 0.47);
+    ctx.bezierCurveTo(-S * 0.28, -S * 0.5, -S * 0.3, -S * 0.1, 0, 0);
+    ctx.fill();
+    ctx.restore();
+  }
+  ctx.fillStyle = 'rgba(255,230,120,1)';
+  ctx.beginPath(); ctx.arc(0, 0, S * 0.07, 0, 7); ctx.fill();
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
 /** Halo radial doux (sprites, lucioles) */
 export function glowTexture(inner = 'rgba(255,255,255,1)', outer = 'rgba(255,255,255,0)') {
   const S = 128;

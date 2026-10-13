@@ -274,7 +274,7 @@ export class World {
       g.position.set(w.x, 0, w.z);
 
       // pièce (logo recto/verso)
-      const coinGeo = new THREE.CylinderGeometry(0.52, 0.52, 0.09, 48);
+      const coinGeo = new THREE.CylinderGeometry(0.72, 0.72, 0.1, 56);
       const face = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
       const texBack = tex.clone();
       texBack.wrapS = THREE.RepeatWrapping; texBack.repeat.x = -1; texBack.offset.x = 1; texBack.needsUpdate = true;
@@ -286,15 +286,15 @@ export class World {
       const tilt = new THREE.Group();
       tilt.rotation.x = -THREE.MathUtils.degToRad(30);
       tilt.add(coin);
-      const spin = new THREE.Group();
+      const spin = new THREE.Group(); // (ne tourne plus : simple flottement)
       spin.add(tilt);
-      spin.position.y = 0.85;
+      spin.position.y = 1.05;
       g.add(spin);
 
       // halo coloré
       const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: partner.color === '#1b1b1b' ? 0x9ad8ff : partner.color, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
-      halo.scale.set(2.2, 2.2, 1);
-      halo.position.y = 0.85;
+      halo.scale.set(3.0, 3.0, 1);
+      halo.position.y = 1.05;
       g.add(halo);
       // halo au sol
       const ground = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, color: partner.color === '#1b1b1b' ? 0x9ad8ff : partner.color, toneMapped: false }));
@@ -303,7 +303,7 @@ export class World {
 
       // fines lianes qui se balancent devant le logo
       const vines = new THREE.Group();
-      vines.position.set(0, 2.4, 0.55);
+      vines.position.set(0, 2.7, 0.75);
       const vineMat = new THREE.MeshStandardMaterial({ color: 0x3e7a2d, roughness: 0.9 });
       const leafMat = new THREE.MeshStandardMaterial({ map: leafTex, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.8 });
       for (let v = 0; v < 3; v++) {
@@ -339,11 +339,12 @@ export class World {
     this.animated.push((t, dt) => {
       for (const m of this.manas) {
         if (m.eaten) continue;
-        m.spin.rotation.y += dt * 1.6;
-        m.spin.position.y = 0.85 + 0.08 * Math.sin(t * 2 + m.phase);
-        const k = 1.9 + 0.25 * Math.sin(t * 3.1 + m.phase);
+        m.spin.position.y = 1.05 + 0.1 * Math.sin(t * 1.8 + m.phase);
+        m.spin.rotation.z = 0.06 * Math.sin(t * 1.3 + m.phase);
+        m.spin.rotation.y = 0.12 * Math.sin(t * 0.9 + m.phase);
+        const k = 2.8 + 0.3 * Math.sin(t * 3.1 + m.phase);
         m.halo.scale.set(k, k, 1);
-        m.halo.material.opacity = 0.45 + 0.15 * Math.sin(t * 3.1 + m.phase);
+        m.halo.material.opacity = 0.6 + 0.15 * Math.sin(t * 3.1 + m.phase);
         for (const pv of m.vines.children) pv.rotation.z = Math.sin(t * 1.25 + pv.userData.phase) * pv.userData.amp;
         m.vines.children.forEach((pv, k2) => { pv.rotation.x = Math.sin(t * 0.9 + pv.userData.phase + k2) * 0.05; });
       }
@@ -397,7 +398,7 @@ export class World {
         const near = z > H / 2;       // côté caméra : plus petit pour ne pas masquer
         const far = z < -H / 2 - 1;
         const s = near ? 0.6 + rand() * 0.5 : far ? 1.4 + rand() * 1.6 : 0.9 + rand() * 1.2;
-        im.userData.items.push({ x, z, s, yaw: rand() * Math.PI * 2, lean: (rand() - 0.5) * 0.5, phase: rand() * 6.28, color: new THREE.Color().setHSL(0.28 + rand() * 0.1, 0.5 + rand() * 0.3, 0.3 + rand() * 0.2) });
+        im.userData.items.push({ x, z, s, yaw: rand() * Math.PI * 2, lean: (rand() - 0.5) * 0.5, phase: rand() * 6.28, color: new THREE.Color().setHSL(0.25 + rand() * 0.13, 0.75 + rand() * 0.25, 0.4 + rand() * 0.2) });
       }
       im.userData.items.forEach((it, i) => im.setColorAt(i, it.color));
       im.instanceColor.needsUpdate = true;
@@ -418,6 +419,29 @@ export class World {
       im.instanceMatrix.needsUpdate = true;
     };
     this.animated.push((t) => { sway(leavesA, t); sway(leavesB, t); });
+
+    // --- fleurs tropicales (hibiscus) : touches de couleur dans le feuillage
+    const flowerTex = TEX.flowerTexture();
+    const flowerGeo = new THREE.PlaneGeometry(0.7, 0.7).translate(0, 0.35, 0);
+    const flowers = new THREE.InstancedMesh(flowerGeo, new THREE.MeshBasicMaterial({ map: flowerTex, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide, toneMapped: false }), quality.flowers);
+    flowers.userData.items = [];
+    for (let i = 0; i < quality.flowers; i++) {
+      let x, z, tries = 0;
+      do { x = (rand() - 0.5) * (W + 9); z = (rand() - 0.5) * (H + 9); tries++; } while (Math.abs(x) < W / 2 + 0.9 && Math.abs(z) < H / 2 + 0.9 && tries < 50);
+      const near = z > H / 2;
+      flowers.userData.items.push({ x, z, s: near ? 0.6 + rand() * 0.3 : 0.8 + rand() * 0.7, yaw: rand() * 6.28, phase: rand() * 6.28, color: new THREE.Color(theme.flowers[i % theme.flowers.length]) });
+    }
+    flowers.userData.items.forEach((it, i) => flowers.setColorAt(i, it.color));
+    flowers.instanceColor.needsUpdate = true;
+    this.scene.add(flowers);
+    this.animated.push((t) => {
+      flowers.userData.items.forEach((it, i) => {
+        e.set(Math.sin(t * 0.9 + it.phase) * 0.08, it.yaw, Math.sin(t * 1.2 + it.phase) * 0.06);
+        q.setFromEuler(e); p.set(it.x, 0.15, it.z); sc.set(it.s, it.s, it.s); m.compose(p, q, sc);
+        flowers.setMatrixAt(i, m);
+      });
+      flowers.instanceMatrix.needsUpdate = true;
+    });
 
     // --- palmiers / grands arbres (côté éloigné et latéraux)
     const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4a3621, roughness: 0.95 });
