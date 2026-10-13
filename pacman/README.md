@@ -4,6 +4,11 @@ Pac‑Man 3D « jungle polynésienne », mobile first, sans dépendance serveur 
 (ouvrir `pacman/` sur GitHub Pages ou n'importe quel hébergement). Le seul fichier tiers est
 `vendor/three.module.min.js` (Three.js r160, licence MIT).
 
+## Tester sans serveur ni GitHub
+`pacman-standalone.html` est une version tout-en-un (Three.js, logos, carte, musique embarqués) :
+un double-clic l'ouvre directement dans Chrome / Safari / Firefox. Pour la régénérer après une
+modification du code : `node build-standalone.mjs` (Node ≥ 18, aucune dépendance).
+
 ## Jouer
 * **Mobile** : glisser le doigt n'importe où sur l'écran (joystick flottant). On peut enchaîner les virages sans relever le doigt.
 * **PC / Mac** : flèches, ZQSD ou WASD. `P` / `Échap` : pause. `Entrée` / `Espace` : valider.
