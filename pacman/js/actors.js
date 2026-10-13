@@ -244,6 +244,7 @@ export const GHOST_DEFS = [
 
 const FRIGHT_COLOR = new THREE.Color(0x2b3cff), FRIGHT_EMISSIVE = new THREE.Color(0x1223b0);
 const FLASH_COLOR = new THREE.Color(0xe8efff), FLASH_EMISSIVE = new THREE.Color(0x8f9dff);
+const FROZEN_COLOR = new THREE.Color(0xd8f6ff), FROZEN_EMISSIVE = new THREE.Color(0x4fc3ff);
 
 let sharedGhostGeo = null;
 function ghostGeometry() {
@@ -275,6 +276,7 @@ export class Ghost extends Mover {
     this.baseColor = new THREE.Color(def.color);
     this.state = 'house';      // house | exiting | active | eyes | entering
     this.frightened = false;
+    this.frozen = false;
     this.flash = false;
     this.releaseDots = 0;
     this.houseSlot = def.slot ?? 0; // position dans la maison (décalage en colonnes)
@@ -330,7 +332,7 @@ export class Ghost extends Mover {
   }
 
   resetToHouse(houseCenter, startsOutside, exitCell) {
-    this.frightened = false; this.flash = false;
+    this.frightened = false; this.flash = false; this.frozen = false;
     this.forceReverse = false;
     if (startsOutside) {
       this.state = 'active';
@@ -345,8 +347,10 @@ export class Ghost extends Mover {
     this.syncMesh(0);
   }
 
-  get isDangerous() { return this.state === 'active' && !this.frightened; }
-  get isEdible() { return this.state === 'active' && this.frightened; }
+  get isDangerous() { return this.state === 'active' && !this.frightened && !this.frozen; }
+  get isEdible() { return this.state === 'active' && (this.frightened || this.frozen); }
+
+  setFrozen(on) { this.frozen = on && this.state === 'active'; this.applyLook(); }
 
   setFrightened(on) {
     if (on) {
@@ -358,7 +362,7 @@ export class Ghost extends Mover {
 
   eaten() {
     this.state = 'eyes';
-    this.frightened = false; this.flash = false;
+    this.frightened = false; this.flash = false; this.frozen = false;
     this.applyLook();
   }
 
@@ -366,7 +370,13 @@ export class Ghost extends Mover {
     const eyesOnly = this.state === 'eyes' || this.state === 'entering';
     this.bodyGroup.visible = !eyesOnly;
     this.halo.visible = !eyesOnly;
-    if (this.frightened) {
+    if (this.frozen) {
+      this.bodyMat.color.copy(FROZEN_COLOR); this.bodyMat.emissive.copy(FROZEN_EMISSIVE);
+      this.bodyMat.opacity = 0.95;
+      this.halo.material.color.copy(FROZEN_EMISSIVE);
+      this.face.material.opacity = 0.5;
+      for (const p of this.pupils) p.visible = true;
+    } else if (this.frightened) {
       const c = this.flash ? FLASH_COLOR : FRIGHT_COLOR;
       const e = this.flash ? FLASH_EMISSIVE : FRIGHT_EMISSIVE;
       this.bodyMat.color.copy(c); this.bodyMat.emissive.copy(e);
@@ -388,6 +398,7 @@ export class Ghost extends Mover {
    */
   update(ctx) {
     const { dt, maze } = { dt: ctx.dt, maze: this.maze };
+    if (this.frozen && this.state === 'active') { this.syncMesh(dt); return; } // figé sur place
     const hc = ctx.houseCenter, he = ctx.houseExit;
     if (this.state === 'house') {
       this.bobPhase += dt * 4;

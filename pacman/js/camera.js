@@ -80,8 +80,9 @@ export class CameraRig {
       const hw = maze.w / 2, hh = maze.h / 2;
       const minX = -hw + this.visHalfW, maxX = hw - this.visHalfW;
       const minZ = -hh + this.visTop - 0.5, maxZ = hh - this.visBottom + 0.5;
-      this.desired.x = minX > maxX ? 0 : THREE.MathUtils.clamp(focus.x, minX, maxX);
-      this.desired.z = minZ > maxZ ? 0 : THREE.MathUtils.clamp(focus.z, minZ, maxZ);
+      // si tout le labyrinthe tient dans l'axe, on le centre dans la zone libre (hors HUD / pavé)
+      this.desired.x = minX > maxX ? (minX + maxX) / 2 : THREE.MathUtils.clamp(focus.x, minX, maxX);
+      this.desired.z = minZ > maxZ ? (minZ + maxZ) / 2 : THREE.MathUtils.clamp(focus.z, minZ, maxZ);
     } else {
       // léger parallaxe vers Pac-Man
       this.desired.x = focus.x * 0.06;

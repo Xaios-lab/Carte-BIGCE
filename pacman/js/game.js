@@ -35,6 +35,7 @@ export class Game {
       fireflies: low ? 30 : this.isTouch ? 50 : 90,
       torchLights: low ? 1 : this.isTouch ? 2 : 4,
       flowers: low ? 25 : this.isTouch ? 40 : 60,
+      fallingLeaves: low ? 10 : this.isTouch ? 18 : 30,
     };
     if (low) { this.renderer.setPixelRatio(1); this.renderer.shadowMap.enabled = false; this.lowQualityApplied = true; }
     this.ui = new UI(PARTNERS);
@@ -57,16 +58,16 @@ export class Game {
     const level = LEVELS[this.levelIndex];
     const theme = THEMES[level.theme];
     this.level = level; this.theme = theme;
-    this.maze = new Maze(level.maze);
+    this.maze = new Maze(level.maze, { specialRatio: level.specials ? level.specials.ratio : 0 });
     const logoTextures = { __partners: PARTNERS };
     await Promise.all(level.mana.map(async (id) => { logoTextures[id] = await loadImageTexture(PARTNERS[id].logo); }));
-    this.cardTex = await loadImageTexture('assets/carte-2026.webp').catch(() => null);
+    this.cardTex = await loadImageTexture(level.bonus.image).catch(() => null);
     this.audio.loadMusic('assets/audio/poursuite-foret.m4a');
     this.world = new World({ maze: this.maze, level, theme, logoTextures, quality: this.quality });
     this.scene = this.world.scene;
     this.rig = new CameraRig(this.maze, this.renderer);
-    this.rig.insets = { top: this.isTouch ? 58 : 66, bottom: this.isTouch ? 70 : 84, left: 6, right: 6 };
-    this.rig.minCellPx = this.isTouch ? 34 : 30;
+    this.rig.minCellPx = this.isTouch ? 27 : 28;
+    this._applyInsets();
     this.rig.resize();
 
     this.pac = new Pacman(this.maze, theme);
@@ -98,10 +99,19 @@ export class Game {
     this.renderer.setAnimationLoop(() => this._frame());
   }
 
+  /** Zones réservées au HUD (et au pavé directionnel sur mobile) pour le cadrage caméra */
+  _applyInsets() {
+    const portrait = window.innerHeight >= window.innerWidth;
+    if (!this.isTouch) this.rig.insets = { top: 66, bottom: 84, left: 6, right: 6 };
+    else if (portrait) this.rig.insets = { top: 58, bottom: 236, left: 6, right: 6 };
+    else this.rig.insets = { top: 52, bottom: 64, left: 6, right: 170 };
+  }
+
   _resize() {
     const w = window.innerWidth, h = window.innerHeight;
     this.renderer.setSize(w, h, false);
     this.canvas.style.width = w + 'px'; this.canvas.style.height = h + 'px';
+    this._applyInsets();
     this.rig.resize();
   }
 
@@ -111,6 +121,13 @@ export class Game {
     this.input.onAction = () => this._action(false);
     this.input.onPause = () => this.togglePause();
     document.getElementById('btn-play').addEventListener('click', () => this._action(true));
+    for (const b of document.querySelectorAll('#dpad button')) {
+      const d = DIRS[b.dataset.dir];
+      const press = (e) => { e.preventDefault(); this.audio.init(); this.input.onDir(d); b.classList.add('on'); };
+      b.addEventListener('pointerdown', press);
+      b.addEventListener('pointerup', () => b.classList.remove('on'));
+      b.addEventListener('pointerleave', () => b.classList.remove('on'));
+    }
     document.getElementById('btn-retry').addEventListener('click', () => this.newGame());
     document.getElementById('btn-next').addEventListener('click', () => this.newGame());
     document.getElementById('btn-resume').addEventListener('click', () => this.togglePause());
@@ -146,7 +163,7 @@ export class Game {
     this.ui.showScreen(null);
     this.pac.reset(this.maze.pacStart);
     this.ghosts.forEach((g) => g.resetToHouse(this.maze.houseCenter, g.def.startsOutside, this.maze.houseExit));
-    this.frightTimer = 0; this.ghostCombo = 0;
+    this.frightTimer = 0; this.freezeTimer = 0; this.ghostCombo = 0;
     this.modeIndex = 0; this.modeTimer = this.level.scatterChase[0]; this.mode = 'scatter';
     this.dotTimer = 0;
     this.readyTimer = first ? 2.4 : 1.6;
@@ -188,7 +205,7 @@ export class Game {
 
     this.world.update(t, dt);
     this._updateFx(dt);
-    this.bonus.update(t, dt);
+    if (this.bonus.active) this.bonus.update(t, dt);
     const focus = this.state === 'title' ? new THREE.Vector3(0, 0, 0) : this.pac.mesh.position;
     this.rig.update(raw, focus);
     this.ui.updatePopups(raw, this.rig.camera, this.rig.w, this.rig.h);
@@ -223,14 +240,23 @@ export class Game {
     }
     // sons de boucle
     if (this.ghosts.some((g) => g.state === 'eyes')) this.audio.setLoop('eyes');
-    else if (this.frightTimer > 0) this.audio.setLoop('fright');
+    else if (this.frightTimer > 0 || this.freezeTimer > 0) this.audio.setLoop('fright');
     else this.audio.setLoop(this.audio.musicPlaying ? null : 'siren');
-    this.audio.duck(this.frightTimer > 0 ? 0.55 : 1);
+    this.audio.duck(this.frightTimer > 0 || this.freezeTimer > 0 ? 0.55 : 1);
     void L;
   }
 
   _simulate(dt) {
     const L = this.level, maze = this.maze;
+    // --- gel (carte BIG CE)
+    if (this.freezeTimer > 0) {
+      this.freezeTimer -= dt;
+      if (this.freezeTimer <= 0) {
+        this.freezeTimer = 0;
+        this.ghosts.forEach((g) => g.setFrozen(false));
+        if (this.frightTimer <= 0) { this.pac.powered = false; this.ghostCombo = 0; }
+      }
+    }
     // --- mode scatter/chase
     if (this.frightTimer > 0) {
       this.frightTimer -= dt;
@@ -239,7 +265,7 @@ export class Game {
       if (this.frightTimer <= 0) {
         this.frightTimer = 0; this.ghostCombo = 0;
         this.ghosts.forEach((g) => g.setFrightened(false));
-        this.pac.powered = false;
+        if (this.freezeTimer <= 0) this.pac.powered = false;
       }
     } else {
       this.modeTimer -= dt;
@@ -299,8 +325,17 @@ export class Game {
     if (d) {
       this.world.eatDot(d.idx);
       this.dotsEaten++;
-      this._addScore(SCORE.dot);
-      this.audio.waka();
+      if (d.kind !== 'arrow') {
+        const pts = this.level.specials[d.kind];
+        this._addScore(pts);
+        const w = this.maze.toWorld(d.c, d.r);
+        this.ui.popup(`${d.kind === 'star' ? '★' : '◗'} +${pts}`, new THREE.Vector3(w.x, 0.3, w.z), 'bonus');
+        this._sparks(new THREE.Vector3(w.x, 0.3, w.z), 10);
+        this.audio.bonus();
+      } else {
+        this._addScore(SCORE.dot);
+        this.audio.waka();
+      }
       this.dotTimer = 0;
       const L = this.level;
       if (L.bonus && this.bonusIndex < L.bonus.at.length && this.dotsEaten >= L.bonus.at[this.bonusIndex]) {
@@ -348,17 +383,28 @@ export class Game {
   _spawnBonus() {
     const b = this.maze.bonusCell;
     const w = this.maze.toWorld(b.c, b.r);
-    this.bonus.mesh.position.set(w.x, 0.5, w.z);
+    this.bonus.mesh.position.set(w.x, 0, w.z);
     this.bonus.mesh.visible = true;
     this.bonus.active = true;
+    this.bonus.appear = 0;
     this.bonus.timer = this.level.bonus.duration;
+    this.audio.bonus();
   }
   _eatBonus() {
     this.bonus.active = false; this.bonus.mesh.visible = false;
     this._addScore(this.level.bonus.score);
-    this.ui.popup(`${this.level.bonus.label} +${this.level.bonus.score}`, this.bonus.mesh.position, 'bonus');
-    this.audio.bonus();
-    this._sparks(this.bonus.mesh.position.clone(), 30);
+    // super-pouvoir : les esprits sont gelés et comestibles pendant quelques secondes
+    this.freezeTimer = this.level.freezeTime;
+    this.ghostCombo = 0;
+    this.ghosts.forEach((g) => g.setFrozen(true));
+    this.pac.powered = true;
+    this.ui.manaBurst({ logo: this.level.bonus.image, name: this.level.bonus.label }, { card: true, tag: 'GEL !', sub: 'Les esprits sont figés : mange-les !' });
+    this.ui.flash('white');
+    this.audio.eatMana();
+    this.timeScale = 0.3;
+    this.rig.shake = 0.3;
+    this._shockwave(this.bonus.mesh.position.clone().setY(0.05), 0x7fdcff);
+    this._sparks(this.bonus.mesh.position.clone().setY(0.8), 40);
   }
 
   _addScore(n) {
@@ -463,18 +509,38 @@ export class Game {
   _makeBonus() {
     const tex = this.cardTex;
     const g = new THREE.Group();
-    const card = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.83), new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, toneMapped: false }));
-    card.rotation.x = -THREE.MathUtils.degToRad(30); // inclinée vers la caméra, comme les Manas
+    // même présentation que les Manas : carte vue de face, flottante, sans rotation
+    const plate = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.96), new THREE.MeshStandardMaterial({ color: 0xf4d27a, metalness: 0.7, roughness: 0.35, side: THREE.DoubleSide }));
+    const card = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.89), new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, toneMapped: false }));
+    card.position.z = 0.01;
+    const badge = new THREE.Group();
+    badge.add(plate, card);
+    badge.rotation.x = -THREE.MathUtils.degToRad(63);
     const spin = new THREE.Group();
-    spin.add(card);
+    spin.add(badge);
+    spin.position.y = 1.05;
     g.add(spin);
-    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture('rgba(255,230,120,1)', 'rgba(255,200,60,0)'), transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
-    halo.scale.set(1.8, 1.8, 1);
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture('rgba(190,240,255,1)', 'rgba(120,200,255,0)'), transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+    halo.scale.set(3.2, 3.2, 1);
+    halo.position.y = 1.05;
     g.add(halo);
     g.visible = false;
-    return {
-      mesh: g, active: false, timer: 0,
-      update(t) { if (!g.visible) return; spin.rotation.y = t * 1.8; g.position.y = 0.75 + Math.sin(t * 3) * 0.08; halo.material.opacity = 0.45 + 0.2 * Math.sin(t * 5); },
+    const self = { mesh: g, active: false, timer: 0, appear: 1 };
+    self.update = (t, dt) => {
+      if (!g.visible) return;
+      spin.position.y = 1.05 + Math.sin(t * 1.8) * 0.1;
+      halo.material.opacity = 0.5 + 0.2 * Math.sin(t * 4);
+      if (self.appear < 1) {
+        self.appear = Math.min(1, self.appear + dt / 0.55);
+        const e = 1 - Math.pow(1 - self.appear, 3);
+        spin.rotation.y = Math.PI * 2 * (1 - e);
+        const sc = 0.4 + 0.6 * e + Math.sin(self.appear * Math.PI) * 0.15;
+        spin.scale.set(sc, sc, sc);
+      }
+      // clignote avant de disparaître
+      g.visible = !(self.timer < 2.5 && Math.floor(self.timer * 6) % 2 === 0) || self.timer <= 0;
+      if (self.timer < 2.5 && self.active) g.visible = Math.floor(self.timer * 6) % 2 === 0;
     };
+    return self;
   }
 }

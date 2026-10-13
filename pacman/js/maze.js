@@ -19,8 +19,10 @@ export function opposite(d) {
   return DIRS.none;
 }
 
+function hash(c, r) { let h = (c * 73856093) ^ (r * 19349663); h = Math.imul(h ^ (h >>> 13), 0x5bd1e995); return ((h ^ (h >>> 15)) >>> 0) / 4294967296; }
+
 export class Maze {
-  constructor(rows) {
+  constructor(rows, { specialRatio = 0 } = {}) {
     this.rows = rows.map((r) => r.split(''));
     this.h = rows.length;
     this.w = rows[0].length;
@@ -49,7 +51,13 @@ export class Maze {
     const hr = this.house.reduce((a, p) => a + p.r, 0) / this.house.length;
     this.houseCenter = { c: Math.round(hc), r: Math.round(hr) };
     this.houseExit = this.door ? { c: this.door.c, r: this.door.r - 1 } : { c: this.houseCenter.c, r: this.houseCenter.r - 2 };
-    if (!this.bonusCell) this.bonusCell = { c: this.houseCenter.c, r: this.houseCenter.r + 2 };
+    if (!this.bonusCell) this.bonusCell = { ...this.pacStart };
+    // quelques pointillés deviennent des étoiles de mer ou des coquillages (plus de points)
+    let k = 0;
+    for (const d of this.dots) {
+      d.kind = 'arrow';
+      if (specialRatio > 0 && hash(d.c, d.r) < specialRatio) d.kind = (k++ % 2) ? 'shell' : 'star';
+    }
     this.dotIndex = new Map(this.dots.map((d) => [d.c + ',' + d.r, d]));
   }
 

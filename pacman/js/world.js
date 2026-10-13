@@ -182,7 +182,7 @@ export class World {
     }
   }
 
-  // ------------------------------------------------------------ POINTILLÉS (flèches tatouage)
+  // ------------------------------------------------------------ POINTILLÉS (flèches tatouage, étoiles de mer, coquillages)
   _dots() {
     const { maze, theme } = this;
     // flèche tatouage : longue pointe triangulaire + fine lame parallèle (motif « niho »)
@@ -190,16 +190,46 @@ export class World {
     tip.moveTo(0, 0.31); tip.lineTo(0.07, -0.23); tip.lineTo(-0.15, -0.23); tip.closePath();
     const blade = new THREE.Shape();
     blade.moveTo(0.12, 0.16); blade.lineTo(0.2, -0.23); blade.lineTo(0.13, -0.23); blade.closePath();
-    const geo = new THREE.ShapeGeometry([tip, blade]);
-    geo.translate(0.0, -0.03, 0);
-    geo.scale(0.9, 0.9, 0.9);
-    geo.rotateX(-Math.PI / 2);
-    const mat = new THREE.MeshBasicMaterial({ color: theme.dot, toneMapped: false, side: THREE.DoubleSide });
-    const mesh = new THREE.InstancedMesh(geo, mat, maze.dots.length);
-    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    this.dotsMesh = mesh;
+    const arrowGeo = new THREE.ShapeGeometry([tip, blade]);
+    arrowGeo.translate(0.0, -0.03, 0); arrowGeo.scale(0.9, 0.9, 0.9); arrowGeo.rotateX(-Math.PI / 2);
+    // étoile de mer
+    const star = new THREE.Shape();
+    for (let i = 0; i < 10; i++) {
+      const r = i % 2 ? 0.12 : 0.3, a = (i / 10) * Math.PI * 2 - Math.PI / 2;
+      i ? star.lineTo(Math.cos(a) * r, Math.sin(a) * r) : star.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+    }
+    star.closePath();
+    const starGeo = new THREE.ShapeGeometry(star, 2); starGeo.rotateX(-Math.PI / 2);
+    // coquillage (éventail à bord festonné)
+    const shell = new THREE.Shape();
+    shell.moveTo(0, -0.26);
+    for (let i = 0; i <= 14; i++) {
+      const a = Math.PI + (i / 14) * Math.PI;             // de gauche à droite par le haut
+      const r = 0.27 + (i % 2 ? 0 : 0.035);
+      shell.lineTo(Math.cos(a) * r * 1.05, Math.sin(a) * r * -1 + 0.02);
+    }
+    shell.closePath();
+    const shellGeo = new THREE.ShapeGeometry(shell); shellGeo.rotateX(-Math.PI / 2);
+
+    const mk = (geo, color, count) => {
+      const mat = new THREE.MeshBasicMaterial({ color, toneMapped: false, side: THREE.DoubleSide });
+      const im = new THREE.InstancedMesh(geo, mat, Math.max(1, count));
+      im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      im.count = count;
+      this.scene.add(im);
+      return im;
+    };
+    const kinds = { arrow: [], star: [], shell: [] };
+    maze.dots.forEach((d) => kinds[d.kind].push(d));
+    this.dotMeshes = {
+      arrow: mk(arrowGeo, theme.dot, kinds.arrow.length),
+      star: mk(starGeo, 0xff7a3d, kinds.star.length),
+      shell: mk(shellGeo, 0xffd9e4, kinds.shell.length),
+    };
+    this.dotLocal = new Int32Array(maze.dots.length);   // index dans le mesh de sa famille
+    Object.values(kinds).forEach((list) => list.forEach((d, i) => { this.dotLocal[d.idx] = i; }));
+
     this.dotState = new Float32Array(maze.dots.length); // 0 = présent, >0 = temps depuis mangé, -1 = disparu
-    this.dotState.fill(0);
     this.dotPhase = new Float32Array(maze.dots.length);
     this.dotRot = new Float32Array(maze.dots.length);
     // orientation : haut/bas dans les couloirs verticaux, gauche/droite dans les horizontaux, les 4 aux croisements
@@ -208,11 +238,11 @@ export class World {
       this.dotPhase[i] = (d.c * 0.7 + d.r * 1.3) % 6.28;
       const horiz = maze.isOpen(d.c - 1, d.r) || maze.isOpen(d.c + 1, d.r);
       const vert = maze.isOpen(d.c, d.r - 1) || maze.isOpen(d.c, d.r + 1);
-      if (horiz && !vert) this.dotRot[i] = d.c % 2 ? LEFT : RIGHT;
+      if (d.kind !== 'arrow') this.dotRot[i] = (d.c * 1.7 + d.r * 0.9) % 6.28;
+      else if (horiz && !vert) this.dotRot[i] = d.c % 2 ? LEFT : RIGHT;
       else if (vert && !horiz) this.dotRot[i] = d.r % 2 ? DOWN : UP;
       else this.dotRot[i] = [UP, RIGHT, DOWN, LEFT][(d.c + d.r) % 4];
     });
-    this.scene.add(mesh);
     const halo = new THREE.InstancedMesh(
       new THREE.PlaneGeometry(0.62, 0.62).rotateX(-Math.PI / 2),
       new THREE.MeshBasicMaterial({ map: TEX.glowTexture('rgba(255,220,150,1)', 'rgba(255,200,120,0)'), transparent: true, opacity: 0.35, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }),
@@ -240,18 +270,21 @@ export class World {
         k = e < 0.09 ? 1 + e * 8 : Math.max(0, 1.7 - (e - 0.09) * 14);
         if (k <= 0) { this.dotState[i] = -1; k = 0; }
       } else if (st < 0) k = 0;
+      const special = d.kind !== 'arrow';
       const bob = 0.05 + 0.025 * Math.sin(t * 2.2 + this.dotPhase[i]);
       p.set(w.x, bob, w.z);
-      q.setFromAxisAngle(up, this.dotRot[i]);
-      sc.set(k, k, k);
+      q.setFromAxisAngle(up, this.dotRot[i] + (special ? Math.sin(t * 1.5 + this.dotPhase[i]) * 0.3 : 0));
+      const ks = special ? k * (1 + 0.08 * Math.sin(t * 4 + this.dotPhase[i])) : k;
+      sc.set(ks, ks, ks);
       m.compose(p, q, sc);
-      this.dotsMesh.setMatrixAt(i, m);
-      sc.set(k * (0.9 + 0.15 * Math.sin(t * 3 + this.dotPhase[i])), 1, k * (0.9 + 0.15 * Math.sin(t * 3 + this.dotPhase[i])));
+      this.dotMeshes[d.kind].setMatrixAt(this.dotLocal[i], m);
+      const hs = k * (special ? 1.4 : 0.9 + 0.15 * Math.sin(t * 3 + this.dotPhase[i]));
+      sc.set(hs, 1, hs);
       p.y = 0.02;
       m.compose(p, q, sc);
       this.dotHalo.setMatrixAt(i, m);
     }
-    this.dotsMesh.instanceMatrix.needsUpdate = true;
+    for (const im of Object.values(this.dotMeshes)) im.instanceMatrix.needsUpdate = true;
     this.dotHalo.instanceMatrix.needsUpdate = true;
   }
 
@@ -282,11 +315,12 @@ export class World {
       badge.add(back, logo);
       // la caméra plonge à ~63° : la normale du médaillon pointe vers elle => vu de face, cercle parfait, logo à l'endroit
       badge.rotation.x = -THREE.MathUtils.degToRad(63);
-      const spin = new THREE.Group(); // simple flottement, pas de rotation
+      const spin = new THREE.Group(); // flottement ; le flip ne sert qu'à l'apparition
       spin.add(badge);
       spin.position.y = 1.05;
       g.add(spin);
       const coin = badge;
+      badge.userData.restX = badge.rotation.x;
 
       // halo coloré
       const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: partner.color === '#1b1b1b' ? 0x9ad8ff : partner.color, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
@@ -299,7 +333,7 @@ export class World {
       g.add(ground);
 
       this.scene.add(g);
-      const mana = { group: g, spin, coin, halo, ground, partner, partnerId, cell, eaten: false, phase: i * 1.7 };
+      const mana = { group: g, spin, coin, halo, ground, partner, partnerId, cell, eaten: false, phase: i * 1.7, appear: 0 };
       this.manas.push(mana);
     });
 
@@ -307,6 +341,14 @@ export class World {
       for (const m of this.manas) {
         if (m.eaten) continue;
         m.spin.position.y = 1.05 + 0.1 * Math.sin(t * 1.8 + m.phase);
+        if (m.appear < 1) {
+          // flip rapide (0,55 s) : part de dos, finit pile de face, avec un petit rebond d'échelle
+          m.appear = Math.min(1, m.appear + dt / 0.55);
+          const e = 1 - Math.pow(1 - m.appear, 3);
+          m.spin.rotation.y = Math.PI * 2 * (1 - e);
+          const sc = 0.4 + 0.6 * e + Math.sin(m.appear * Math.PI) * 0.15;
+          m.spin.scale.set(sc, sc, sc);
+        }
         const k = 2.8 + 0.3 * Math.sin(t * 3.1 + m.phase);
         m.halo.scale.set(k, k, 1);
         m.halo.material.opacity = 0.6 + 0.15 * Math.sin(t * 3.1 + m.phase);
@@ -322,7 +364,7 @@ export class World {
   }
 
   resetManas() {
-    for (const m of this.manas) { m.eaten = false; m.spin.visible = true; m.halo.visible = true; m.ground.visible = true; }
+    for (const m of this.manas) { m.eaten = false; m.spin.visible = true; m.halo.visible = true; m.ground.visible = true; m.appear = 0; }
   }
 
   // ------------------------------------------------------------ DÉCOR JUNGLE
@@ -367,9 +409,13 @@ export class World {
     place(leavesB, leavesB.count);
     this.scene.add(leavesA, leavesB);
     const m = new THREE.Matrix4(), e = new THREE.Euler(), q = new THREE.Quaternion(), p = new THREE.Vector3(), sc = new THREE.Vector3();
+    // vent : souffle de fond + rafales irrégulières
+    const wind = (t) => 0.6 + 0.4 * Math.sin(t * 0.35) + 0.5 * Math.max(0, Math.sin(t * 0.9 + 1.3)) * Math.max(0, Math.sin(t * 0.23));
+    this.wind = wind;
     const sway = (im, t) => {
+      const wv = wind(t);
       im.userData.items.forEach((it, i) => {
-        e.set(it.lean + Math.sin(t * 0.9 + it.phase) * 0.06, it.yaw, Math.sin(t * 1.1 + it.phase * 1.3) * 0.05);
+        e.set(it.lean + Math.sin(t * 1.3 + it.phase) * 0.07 * wv + Math.sin(t * 3.1 + it.phase) * 0.02 * wv, it.yaw + Math.sin(t * 0.7 + it.phase) * 0.08 * wv, Math.sin(t * 1.6 + it.phase * 1.3) * 0.09 * wv);
         q.setFromEuler(e);
         p.set(it.x, 0, it.z);
         sc.set(it.s, it.s, it.s);
@@ -396,7 +442,8 @@ export class World {
     this.scene.add(flowers);
     this.animated.push((t) => {
       flowers.userData.items.forEach((it, i) => {
-        e.set(Math.sin(t * 0.9 + it.phase) * 0.08, it.yaw, Math.sin(t * 1.2 + it.phase) * 0.06);
+        const wv = wind(t);
+        e.set(Math.sin(t * 1.2 + it.phase) * 0.12 * wv, it.yaw + Math.sin(t * 0.8 + it.phase) * 0.1, Math.sin(t * 1.5 + it.phase) * 0.1 * wv);
         q.setFromEuler(e); p.set(it.x, 0.15, it.z); sc.set(it.s, it.s, it.s); m.compose(p, q, sc);
         flowers.setMatrixAt(i, m);
       });
@@ -437,10 +484,34 @@ export class World {
       palms.push({ crown, phase: i });
     });
     this.animated.push((t) => {
+      const wv = wind(t);
       for (const pm of palms) {
-        pm.crown.rotation.y = Math.sin(t * 0.5 + pm.phase) * 0.06;
-        for (const pv of pm.crown.children) pv.rotation.x = Math.sin(t * 1.2 + pv.userData.phase + pm.phase) * 0.06;
+        pm.crown.rotation.y = Math.sin(t * 0.5 + pm.phase) * 0.08 * wv;
+        pm.crown.rotation.z = Math.sin(t * 0.8 + pm.phase) * 0.05 * wv;
+        for (const pv of pm.crown.children) pv.rotation.x = Math.sin(t * 1.6 + pv.userData.phase + pm.phase) * 0.12 * wv;
       }
+    });
+
+    // --- feuilles qui tombent lentement
+    const fallGeo = new THREE.PlaneGeometry(0.28, 0.42);
+    const fallMat = new THREE.MeshBasicMaterial({ map: leafTexA, transparent: true, alphaTest: 0.4, side: THREE.DoubleSide, toneMapped: false, color: 0xc9f08a });
+    const falling = new THREE.InstancedMesh(fallGeo, fallMat, quality.fallingLeaves);
+    falling.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    const fallers = [];
+    for (let i = 0; i < quality.fallingLeaves; i++) fallers.push({ x: (rand() - 0.5) * (W + 10), z: (rand() - 0.5) * (H + 10), y: rand() * 7, spd: 0.35 + rand() * 0.35, phase: rand() * 6.28, rot: rand() * 6.28 });
+    this.scene.add(falling);
+    this.animated.push((t, dt) => {
+      const wv = wind(t);
+      fallers.forEach((f, i) => {
+        f.y -= f.spd * dt;
+        f.x += (0.3 + 0.6 * wv) * dt * Math.sin(t * 0.5 + f.phase);
+        f.z += 0.2 * dt * Math.cos(t * 0.7 + f.phase);
+        if (f.y < 0.1) { f.y = 6 + rand() * 2; f.x = (rand() - 0.5) * (W + 10); f.z = (rand() - 0.5) * (H + 10); }
+        e.set(Math.sin(t * 2 + f.phase) * 0.8, f.rot + t * 0.8, Math.cos(t * 1.7 + f.phase) * 0.6);
+        q.setFromEuler(e); p.set(f.x, f.y, f.z); sc.set(1, 1, 1); m.compose(p, q, sc);
+        falling.setMatrixAt(i, m);
+      });
+      falling.instanceMatrix.needsUpdate = true;
     });
 
     // --- lianes suspendues sur les côtés
@@ -468,7 +539,7 @@ export class World {
       this.scene.add(pivot);
       lianas.push(pivot);
     }
-    this.animated.push((t) => { for (const l of lianas) { l.rotation.z = Math.sin(t * 0.8 + l.userData.phase) * 0.07; l.rotation.x = Math.sin(t * 0.6 + l.userData.phase) * 0.04; } });
+    this.animated.push((t) => { const wv = wind(t); for (const l of lianas) { l.rotation.z = Math.sin(t * 0.8 + l.userData.phase) * 0.12 * wv; l.rotation.x = Math.sin(t * 0.6 + l.userData.phase) * 0.07 * wv; } });
 
     // --- torches aux 4 coins
     const flameTex = TEX.flameTexture();

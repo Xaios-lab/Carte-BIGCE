@@ -68,13 +68,13 @@ export class UI {
   }
 
   /** Grand retournement du logo Mana + flammes dorées + nom du partenaire */
-  manaBurst(partner) {
+  manaBurst(partner, { card = false, tag = 'MANA', sub = 'Mange les esprits !' } = {}) {
     const d = document.createElement('div');
-    d.className = 'mana-burst';
+    d.className = 'mana-burst' + (card ? ' card' : '');
     d.innerHTML = `
       <div class="fire"></div><div class="fire b"></div>
       <div class="coin"><div class="side front"><img src="${partner.logo}" alt=""></div><div class="side back"><img src="${partner.logo}" alt=""></div></div>
-      <div class="label"><em>MANA</em><strong>${partner.name}</strong><span>Mange les esprits !</span></div>`;
+      <div class="label"><em>${tag}</em><strong>${partner.name}</strong><span>${sub}</span></div>`;
     this.el.fx.appendChild(d);
     setTimeout(() => d.remove(), 2600);
   }

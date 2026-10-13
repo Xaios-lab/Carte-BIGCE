@@ -16,6 +16,8 @@ export const PARTNERS = {
   ace:      { id: 'ace',      name: 'ACE Sin Tung Hing',  logo: 'assets/logos/ace.png',      color: '#e8232a' },
   gan:      { id: 'gan',      name: 'GAN',                logo: 'assets/logos/gan.png',      color: '#f5b400' },
   taapuna:  { id: 'taapuna',  name: 'Taapuna La Boutique',logo: 'assets/logos/taapuna.png',  color: '#1b1b1b' },
+  // Partenaires préférentiels (Manas du centre) : remplacer le logo BIG CE par les leurs
+  bigce:    { id: 'bigce',    name: 'BIG CE',             logo: 'assets/logos/bigce.png',    color: '#e9b949' },
 };
 
 export const THEMES = {
@@ -44,13 +46,15 @@ export const LEVELS = [
     name: 'Niveau 1',
     subtitle: 'La jungle de Taapuna',
     theme: 'jungle',
-    // Les 4 Manas (coins) utilisent les logos dans cet ordre : haut-gauche, haut-droit, bas-gauche, bas-droit
-    mana: ['agritech', 'ace', 'gan', 'taapuna'],
+    // Manas dans l'ordre de lecture du labyrinthe : haut-gauche, haut-droit, centre-haut, centre-bas, bas-gauche, bas-droit
+    mana: ['agritech', 'ace', 'bigce', 'bigce', 'gan', 'taapuna'],
+    specials: { ratio: 0.1, star: 50, shell: 30 },   // étoiles de mer / coquillages parmi les pointillés
+    freezeTime: 5,                                   // super-pouvoir de la carte BIG CE : gel des esprits
     speeds: { pacman: 7.6, pacmanEating: 7.2, ghost: 5.9, frightened: 3.8, tunnel: 3.4, eyes: 15 },
     frightenedTime: 10,         // secondes d'invincibilité (Mana)
     scatterChase: [10, 18, 9, 18, 7, 18, 5, Infinity],
     ghostRelease: { pinky: 8, inky: 45, clyde: 90 }, // nb de pointillés mangés avant sortie
-    bonus: { at: [60, 150], duration: 10, score: 500, label: 'Carte BIG CE' },
+    bonus: { at: [50, 130], duration: 12, score: 500, label: 'Carte BIG CE', image: 'assets/carte-2026.webp' },
     maze: [
       '#####################',
       '#.........#.........#',
@@ -59,11 +63,11 @@ export const LEVELS = [
       '#.###.#.#####.#.###.#',
       '#.....#...#...#.....#',
       '#####.###.#.###.#####',
-      '#####.#.......#.#####',
+      '#####.#...o...#.#####',
       '#####.#.##=##.#.#####',
       'T   ....#GGG#....   T',
       '#####.#.#####.#.#####',
-      '#####.#...B...#.#####',
+      '#####.#...o...#.#####',
       '#####.#.#####.#.#####',
       '#.........#.........#',
       '#.###.###.#.###.###.#',
