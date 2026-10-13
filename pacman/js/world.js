@@ -185,12 +185,14 @@ export class World {
   // ------------------------------------------------------------ POINTILLÉS (flèches tatouage)
   _dots() {
     const { maze, theme } = this;
-    const s = new THREE.Shape();
-    // flèche "tatau" : pointe triangulaire + hampe
-    s.moveTo(0, 0.26); s.lineTo(0.17, 0.02); s.lineTo(0.065, 0.02); s.lineTo(0.065, -0.24);
-    s.lineTo(-0.065, -0.24); s.lineTo(-0.065, 0.02); s.lineTo(-0.17, 0.02); s.closePath();
-    const geo = new THREE.ShapeGeometry(s);
-    geo.scale(0.85, 0.85, 0.85);
+    // flèche tatouage : longue pointe triangulaire + fine lame parallèle (motif « niho »)
+    const tip = new THREE.Shape();
+    tip.moveTo(0, 0.31); tip.lineTo(0.07, -0.23); tip.lineTo(-0.15, -0.23); tip.closePath();
+    const blade = new THREE.Shape();
+    blade.moveTo(0.12, 0.16); blade.lineTo(0.2, -0.23); blade.lineTo(0.13, -0.23); blade.closePath();
+    const geo = new THREE.ShapeGeometry([tip, blade]);
+    geo.translate(0.0, -0.03, 0);
+    geo.scale(0.9, 0.9, 0.9);
     geo.rotateX(-Math.PI / 2);
     const mat = new THREE.MeshBasicMaterial({ color: theme.dot, toneMapped: false, side: THREE.DoubleSide });
     const mesh = new THREE.InstancedMesh(geo, mat, maze.dots.length);
@@ -199,11 +201,16 @@ export class World {
     this.dotState = new Float32Array(maze.dots.length); // 0 = présent, >0 = temps depuis mangé, -1 = disparu
     this.dotState.fill(0);
     this.dotPhase = new Float32Array(maze.dots.length);
-    this.dotFlip = new Uint8Array(maze.dots.length);
-    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), sc = new THREE.Vector3();
+    this.dotRot = new Float32Array(maze.dots.length);
+    // orientation : haut/bas dans les couloirs verticaux, gauche/droite dans les horizontaux, les 4 aux croisements
+    const UP = 0, DOWN = Math.PI, LEFT = Math.PI / 2, RIGHT = -Math.PI / 2;
     maze.dots.forEach((d, i) => {
       this.dotPhase[i] = (d.c * 0.7 + d.r * 1.3) % 6.28;
-      this.dotFlip[i] = (d.c + d.r) % 2; // alternance flèche / flèche inversée
+      const horiz = maze.isOpen(d.c - 1, d.r) || maze.isOpen(d.c + 1, d.r);
+      const vert = maze.isOpen(d.c, d.r - 1) || maze.isOpen(d.c, d.r + 1);
+      if (horiz && !vert) this.dotRot[i] = d.c % 2 ? LEFT : RIGHT;
+      else if (vert && !horiz) this.dotRot[i] = d.r % 2 ? DOWN : UP;
+      else this.dotRot[i] = [UP, RIGHT, DOWN, LEFT][(d.c + d.r) % 4];
     });
     this.scene.add(mesh);
     const halo = new THREE.InstancedMesh(
@@ -235,7 +242,7 @@ export class World {
       } else if (st < 0) k = 0;
       const bob = 0.05 + 0.025 * Math.sin(t * 2.2 + this.dotPhase[i]);
       p.set(w.x, bob, w.z);
-      q.setFromAxisAngle(up, this.dotFlip[i] ? Math.PI : 0);
+      q.setFromAxisAngle(up, this.dotRot[i]);
       sc.set(k, k, k);
       m.compose(p, q, sc);
       this.dotsMesh.setMatrixAt(i, m);

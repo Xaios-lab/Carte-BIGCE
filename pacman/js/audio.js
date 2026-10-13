@@ -26,7 +26,27 @@ export class AudioFX {
     this.muted = m;
     localStorage.setItem('pacmana.muted', m ? '1' : '0');
     if (this.master) this.master.gain.setTargetAtTime(m ? 0 : 0.6, this.ctx.currentTime, 0.05);
+    if (this.music) this.music.muted = m;
   }
+
+  // --- musique (fichier) : « Poursuite dans la forêt »
+  loadMusic(url) {
+    const a = new Audio();
+    a.src = url; a.loop = true; a.preload = 'auto'; a.volume = this.musicVolume; a.muted = this.muted;
+    this.music = a;
+    this.musicPlaying = false;
+  }
+  get musicVolume() { return 0.55; }
+  playMusic() {
+    if (!this.music) return;
+    const p = this.music.play();
+    this.musicPlaying = true;
+    if (p && p.catch) p.catch(() => { this.musicPlaying = false; });
+  }
+  pauseMusic() { if (this.music) { this.music.pause(); this.musicPlaying = false; } }
+  stopMusic() { if (this.music) { this.music.pause(); this.music.currentTime = 0; this.musicPlaying = false; } }
+  /** Baisse temporaire de la musique (mode Mana) : k dans [0,1] */
+  duck(k) { if (this.music) this.music.volume += (this.musicVolume * k - this.music.volume) * 0.1; }
 
   _osc(type, freq, t0, dur, vol = 0.2, { attack = 0.005, release = 0.05, to = null, dest = null } = {}) {
     const c = this.ctx;

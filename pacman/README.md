@@ -37,5 +37,8 @@ pacman/
   js/audio.js         sons synthétisés (WebAudio)
   js/textures.js      textures procédurales (pierre, feuilles, flammes…)
   assets/logos/       pastilles partenaires
+  assets/bigce.png    logo BIG CE (écran titre)
+  assets/carte-2026.webp  carte BIG CE (bonus en jeu)
+  assets/audio/       musique « Poursuite dans la forêt » (AAC)
   assets/splash.webp  illustration de l'écran titre
 ```

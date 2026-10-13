@@ -10,7 +10,7 @@ import { CameraRig } from './camera.js';
 import { Input } from './input.js';
 import { AudioFX } from './audio.js';
 import { UI } from './ui.js';
-import { loadImageTexture, glowTexture, cardTexture } from './textures.js';
+import { loadImageTexture, glowTexture } from './textures.js';
 
 const SCORE = { dot: 10, mana: 50, ghost: [200, 400, 800, 1600], extraLifeAt: 10000 };
 
@@ -59,6 +59,8 @@ export class Game {
     this.maze = new Maze(level.maze);
     const logoTextures = { __partners: PARTNERS };
     await Promise.all(level.mana.map(async (id) => { logoTextures[id] = await loadImageTexture(PARTNERS[id].logo); }));
+    this.cardTex = await loadImageTexture('assets/carte-2026.webp').catch(() => null);
+    this.audio.loadMusic('assets/audio/poursuite-foret.m4a');
     this.world = new World({ maze: this.maze, level, theme, logoTextures, quality: this.quality });
     this.scene = this.world.scene;
     this.rig = new CameraRig(this.maze, this.renderer);
@@ -124,8 +126,8 @@ export class Game {
   }
 
   togglePause() {
-    if (this.state === 'playing') { this.state = 'paused'; this.ui.showScreen('screen-pause'); this.audio.setLoop(null); }
-    else if (this.state === 'paused') { this.state = 'playing'; this.ui.showScreen(null); this.clock.getDelta(); }
+    if (this.state === 'playing') { this.state = 'paused'; this.ui.showScreen('screen-pause'); this.audio.setLoop(null); this.audio.pauseMusic(); }
+    else if (this.state === 'paused') { this.state = 'playing'; this.ui.showScreen(null); this.clock.getDelta(); this.audio.playMusic(); }
   }
 
   // ------------------------------------------------------------ PARTIE
@@ -151,7 +153,7 @@ export class Game {
     this.timeScale = 1;
     this.rig.target.set(0, 0, 0);
     this.ui.message(first ? 'PRÊT ?' : 'ENCORE !', 'ready');
-    if (first) this.audio.start();
+    if (first) { this.audio.start(); this.audio.playMusic(); }
     this.audio.setLoop(null);
     this.clock.getDelta();
   }
@@ -221,7 +223,8 @@ export class Game {
     // sons de boucle
     if (this.ghosts.some((g) => g.state === 'eyes')) this.audio.setLoop('eyes');
     else if (this.frightTimer > 0) this.audio.setLoop('fright');
-    else this.audio.setLoop('siren');
+    else this.audio.setLoop(this.audio.musicPlaying ? null : 'siren');
+    this.audio.duck(this.frightTimer > 0 ? 0.55 : 1);
     void L;
   }
 
@@ -387,6 +390,7 @@ export class Game {
     if (this.lives <= 0) {
       this.state = 'gameover';
       this.audio.setLoop(null);
+      this.audio.stopMusic();
       document.getElementById('over-score').textContent = String(this.score);
       this.ui.showScreen('screen-over');
       this.ui.message(null);
@@ -399,6 +403,7 @@ export class Game {
     this.state = 'winning';
     this.winTimer = 2.4;
     this.audio.setLoop(null);
+    this.audio.stopMusic();
     this.audio.levelWin();
     this.ui.message('NIVEAU TERMINÉ !', 'win');
     this.ui.confetti(70);
@@ -455,17 +460,20 @@ export class Game {
   }
 
   _makeBonus() {
-    const tex = cardTexture();
+    const tex = this.cardTex;
     const g = new THREE.Group();
-    const card = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.56), new THREE.MeshStandardMaterial({ map: tex, side: THREE.DoubleSide, roughness: 0.4, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.3 }));
-    g.add(card);
+    const card = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.83), new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, toneMapped: false }));
+    card.rotation.x = -THREE.MathUtils.degToRad(30); // inclinée vers la caméra, comme les Manas
+    const spin = new THREE.Group();
+    spin.add(card);
+    g.add(spin);
     const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture('rgba(255,230,120,1)', 'rgba(255,200,60,0)'), transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
     halo.scale.set(1.8, 1.8, 1);
     g.add(halo);
     g.visible = false;
     return {
       mesh: g, active: false, timer: 0,
-      update(t) { if (!g.visible) return; card.rotation.y = t * 2.2; g.position.y = 0.55 + Math.sin(t * 3) * 0.08; halo.material.opacity = 0.45 + 0.2 * Math.sin(t * 5); },
+      update(t) { if (!g.visible) return; spin.rotation.y = t * 1.8; g.position.y = 0.75 + Math.sin(t * 3) * 0.08; halo.material.opacity = 0.45 + 0.2 * Math.sin(t * 5); },
     };
   }
 }
