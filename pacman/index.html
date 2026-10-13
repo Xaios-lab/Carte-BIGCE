@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#061a1c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Pac-Mana · BIG CE</title>
+  <meta name="description" content="Pac-Man 3D façon jungle polynésienne, édition BIG CE avec les Manas des partenaires Agritech, ACE, GAN et Taapuna La Boutique.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Piedra&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="assets/logos/agritech.png">
+  <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+</head>
+<body>
+  <div id="app">
+    <canvas id="gl"></canvas>
+
+    <!-- HUD -->
+    <header id="hud">
+      <div class="hud-block left">
+        <span class="lbl">Score</span>
+        <span id="score" class="val">00000</span>
+      </div>
+      <div class="hud-block center">
+        <span id="level" class="val">Niveau 1</span>
+        <span class="lbl">Record <b id="hiscore">00000</b></span>
+      </div>
+      <div class="hud-block right">
+        <span id="lives" class="lives"></span>
+        <button id="btn-sound" class="icon no-joy" aria-label="Son">
+          <svg viewBox="0 0 24 24" width="22" height="22"><path class="spk" d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path class="wave" d="M16 8.5a4 4 0 0 1 0 7M18.5 6a7.5 7.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path class="cross" d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <button id="btn-pause" class="icon no-joy" aria-label="Pause">
+          <svg viewBox="0 0 24 24" width="22" height="22"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Bandeau partenaires -->
+    <footer id="partners">
+      <span class="lbl">BIG CE Partners</span>
+      <div id="partner-logos"></div>
+    </footer>
+
+    <div id="msg" class="msg"></div>
+    <div id="fx"></div>
+    <div id="joystick"><div class="knob"></div></div>
+
+    <!-- Écrans -->
+    <div id="screens">
+      <section id="screen-title" class="screen">
+        <div class="splash"></div>
+        <div class="panel title">
+          <div class="brand">BIG CE <small>présente</small></div>
+          <h1>PAC‑MANA</h1>
+          <p class="sub" id="title-level">Niveau 1</p>
+          <button id="btn-play" class="btn big">JOUER</button>
+          <p class="help">
+            <span class="touch-only">Glisse ton doigt n'importe où sur l'écran pour diriger Pac‑Man.</span>
+            <span class="kb-only">Flèches ou ZQSD / WASD pour diriger · P ou Échap pour la pause.</span>
+            <br>Mange les <b>Manas</b> (logos partenaires) pour chasser les esprits tiki !
+          </p>
+          <div class="title-partners">
+            <img src="assets/logos/agritech.png" alt="Agritech">
+            <img src="assets/logos/ace.png" alt="ACE Sin Tung Hing">
+            <img src="assets/logos/gan.png" alt="GAN">
+            <img src="assets/logos/taapuna.png" alt="Taapuna La Boutique">
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-pause" class="screen">
+        <div class="panel">
+          <h2>PAUSE</h2>
+          <button id="btn-resume" class="btn big">REPRENDRE</button>
+        </div>
+      </section>
+
+      <section id="screen-over" class="screen">
+        <div class="panel">
+          <h2>LES ESPRITS<br>ONT GAGNÉ…</h2>
+          <p class="score-line">Score <b id="over-score">0</b></p>
+          <button id="btn-retry" class="btn big">REJOUER</button>
+        </div>
+      </section>
+
+      <section id="screen-win" class="screen">
+        <div class="panel">
+          <div class="brand">Māuruuru !</div>
+          <h2>NIVEAU 1<br>TERMINÉ</h2>
+          <p class="score-line">Score <b id="win-score">0</b></p>
+          <p class="help">Niveau 2 bientôt disponible… Halloween, Noël, Jeux du Pacifique : la jungle n'a pas dit son dernier mot.</p>
+          <button id="btn-next" class="btn big">REJOUER</button>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
