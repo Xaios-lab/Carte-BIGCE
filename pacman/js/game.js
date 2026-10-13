@@ -8,7 +8,7 @@ import { World } from './world.js';
 import { Pacman, Ghost, GHOST_DEFS } from './actors.js';
 import { CameraRig } from './camera.js';
 import { Input } from './input.js';
-import { AudioFX } from './audio.js';
+import { AudioFX, lsGet, lsSet } from './audio.js';
 import { UI } from './ui.js';
 import { loadImageTexture, glowTexture } from './textures.js';
 
@@ -42,7 +42,7 @@ export class Game {
     this.state = 'loading';
     this.levelIndex = 0;
     this.score = 0;
-    this.hiscore = Number(localStorage.getItem('pacmana.hiscore') || 0);
+    this.hiscore = Number(lsGet('pacmana.hiscore') || 0);
     this.lives = 3;
     this.timeScale = 1;
     this.clock = new THREE.Clock();
@@ -370,7 +370,7 @@ export class Game {
       this.audio.extraLife();
       this.ui.popup('+1 VIE', this.pac.mesh.position, 'bonus');
     }
-    if (this.score > this.hiscore) { this.hiscore = this.score; localStorage.setItem('pacmana.hiscore', String(this.hiscore)); this.ui.setHiScore(this.hiscore); }
+    if (this.score > this.hiscore) { this.hiscore = this.score; lsSet('pacmana.hiscore', String(this.hiscore)); this.ui.setHiScore(this.hiscore); }
   }
 
   _die() {

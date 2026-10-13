@@ -46,6 +46,14 @@ html = html.replace(/<link rel="stylesheet" href="css\/style.css">/, `<style>\n$
 html = html.replace(/<script type="module" src="js\/main.js"><\/script>/, () => `<script>\n${js}\n</script>`);
 html = inlineAssets(html);
 html = html.replace('<title>Pac-Mana · BIG CE</title>', '<title>Pac-Mana · BIG CE (version autonome)</title>');
-const out = path.join(root, 'pacman-standalone.html');
+let out = path.join(root, 'pacman-standalone.html');
+const artIdx = process.argv.indexOf('--artifact');
+if (artIdx > 0) {
+  // fragment pour un hébergement qui fournit déjà <html><head><body>
+  out = process.argv[artIdx + 1];
+  const head = html.match(/<head>([\s\S]*?)<\/head>/)[1].replace(/<meta[^>]*>\s*/g, '').replace(/<script[\s\S]*?<\/script>\s*/g, '');
+  const body = html.match(/<body>([\s\S]*?)<\/body>/)[1];
+  html = head.replace('<style>', '<style>\n:root { color-scheme: dark; }') + body;
+}
 fs.writeFileSync(out, html);
 console.log('OK', out, (fs.statSync(out).size / 1e6).toFixed(2), 'Mo');

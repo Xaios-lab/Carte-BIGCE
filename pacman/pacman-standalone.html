@@ -2173,11 +2173,14 @@ const __mod_audio = (() => {
 // ---------------------------------------------------------------------------
 //  AUDIO : tout est synthétisé en WebAudio (aucun fichier son)
 // ---------------------------------------------------------------------------
+function lsGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch { /* stockage indisponible */ } }
+
 class AudioFX {
   constructor() {
     this.ctx = null;
     this.master = null;
-    this.muted = localStorage.getItem('pacmana.muted') === '1';
+    this.muted = lsGet('pacmana.muted') === '1';
     this.wakaFlip = false;
     this.loops = {};
     this.sirenLevel = 0;
@@ -2196,7 +2199,7 @@ class AudioFX {
 
   setMuted(m) {
     this.muted = m;
-    localStorage.setItem('pacmana.muted', m ? '1' : '0');
+    lsSet('pacmana.muted', m ? '1' : '0');
     if (this.master) this.master.gain.setTargetAtTime(m ? 0 : 0.6, this.ctx.currentTime, 0.05);
     if (this.music) this.music.muted = m;
   }
@@ -2352,7 +2355,7 @@ class AudioFX {
   }
 }
 
-return { AudioFX };
+return { lsGet, lsSet, AudioFX };
 })();
 const __mod_ui = (() => {
 // ---------------------------------------------------------------------------
@@ -2493,7 +2496,7 @@ const { World } = __mod_world;
 const { Pacman, Ghost, GHOST_DEFS } = __mod_actors;
 const { CameraRig } = __mod_camera;
 const { Input } = __mod_input;
-const { AudioFX } = __mod_audio;
+const { AudioFX, lsGet, lsSet } = __mod_audio;
 const { UI } = __mod_ui;
 const { loadImageTexture, glowTexture } = __mod_textures;
 
@@ -2527,7 +2530,7 @@ class Game {
     this.state = 'loading';
     this.levelIndex = 0;
     this.score = 0;
-    this.hiscore = Number(localStorage.getItem('pacmana.hiscore') || 0);
+    this.hiscore = Number(lsGet('pacmana.hiscore') || 0);
     this.lives = 3;
     this.timeScale = 1;
     this.clock = new THREE.Clock();
@@ -2855,7 +2858,7 @@ class Game {
       this.audio.extraLife();
       this.ui.popup('+1 VIE', this.pac.mesh.position, 'bonus');
     }
-    if (this.score > this.hiscore) { this.hiscore = this.score; localStorage.setItem('pacmana.hiscore', String(this.hiscore)); this.ui.setHiScore(this.hiscore); }
+    if (this.score > this.hiscore) { this.hiscore = this.score; lsSet('pacmana.hiscore', String(this.hiscore)); this.ui.setHiScore(this.hiscore); }
   }
 
   _die() {

@@ -1,11 +1,14 @@
 // ---------------------------------------------------------------------------
 //  AUDIO : tout est synthétisé en WebAudio (aucun fichier son)
 // ---------------------------------------------------------------------------
+export function lsGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+export function lsSet(k, v) { try { localStorage.setItem(k, v); } catch { /* stockage indisponible */ } }
+
 export class AudioFX {
   constructor() {
     this.ctx = null;
     this.master = null;
-    this.muted = localStorage.getItem('pacmana.muted') === '1';
+    this.muted = lsGet('pacmana.muted') === '1';
     this.wakaFlip = false;
     this.loops = {};
     this.sirenLevel = 0;
@@ -24,7 +27,7 @@ export class AudioFX {
 
   setMuted(m) {
     this.muted = m;
-    localStorage.setItem('pacmana.muted', m ? '1' : '0');
+    lsSet('pacmana.muted', m ? '1' : '0');
     if (this.master) this.master.gain.setTargetAtTime(m ? 0 : 0.6, this.ctx.currentTime, 0.05);
     if (this.music) this.music.muted = m;
   }
