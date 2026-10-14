@@ -1733,59 +1733,38 @@ class Pacman extends Mover {
 
   _buildMesh() {
     const g = new THREE.Group();
-    // corps jaune classique (la variante « noix de coco » reste disponible : map: TEX.coconutTexture())
-    const bodyMat = new THREE.MeshStandardMaterial({ color: this.theme.pacman.body, roughness: 0.42, metalness: 0.05, emissive: 0x5a3f00, emissiveIntensity: 0.25 });
-    const innerMat = new THREE.MeshStandardMaterial({ color: 0x5a1a12, roughness: 0.8 });
-    const R = 0.44;
-    const mkJaw = (top) => {
+    // corps jaune classique, lisse (la variante « noix de coco » reste disponible : map: TEX.coconutTexture())
+    const bodyMat = new THREE.MeshStandardMaterial({ color: this.theme.pacman.body, roughness: 0.38, metalness: 0.05, emissive: 0x6a4a00, emissiveIntensity: 0.28 });
+    const innerMat = new THREE.MeshStandardMaterial({ color: 0x4a140e, roughness: 0.85 });
+    const R = 0.45;
+    // Deux mâchoires séparées par un plan VERTICAL contenant la direction : la bouche s'ouvre
+    // dans le plan du labyrinthe, comme le Pac-Man original vu de dessus => visible dans toutes les directions.
+    const mkJaw = (side) => {
       const jaw = new THREE.Group();
-      const sphere = new THREE.Mesh(new THREE.SphereGeometry(R, 36, 18, 0, Math.PI * 2, top ? 0 : Math.PI / 2, Math.PI / 2), bodyMat);
-      sphere.castShadow = true;
-      const disc = new THREE.Mesh(new THREE.CircleGeometry(R, 36), innerMat);
-      disc.rotation.x = top ? Math.PI / 2 : -Math.PI / 2;
-      jaw.add(sphere, disc);
+      const half = new THREE.Mesh(new THREE.SphereGeometry(R, 40, 28, side > 0 ? 0 : Math.PI, Math.PI), bodyMat);
+      half.castShadow = true;
+      const cut = new THREE.Mesh(new THREE.CircleGeometry(R, 40), innerMat);
+      cut.rotation.y = side > 0 ? Math.PI : 0; // face tournée vers l'ouverture
+      jaw.add(half, cut);
       return jaw;
     };
-    this.top = mkJaw(true);
-    this.bottom = mkJaw(false);
+    this.top = mkJaw(1);      // moitié z > 0
+    this.bottom = mkJaw(-1);  // moitié z < 0
     g.add(this.top, this.bottom);
-    // yeux cartoon (blanc + pupille + sourcil), sur la mâchoire supérieure
-    const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3, emissive: 0x333333 });
-    const pupilMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3 });
-    const browMat = new THREE.MeshStandardMaterial({ color: 0x2a1608, roughness: 0.8 });
+    // deux yeux sur le dessus, près de l'axe de rotation (ils bougent à peine quand la bouche s'ouvre)
+    const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3, emissive: 0x222222 });
+    const pupilMat = new THREE.MeshStandardMaterial({ color: 0x151515, roughness: 0.3 });
     for (const s of [-1, 1]) {
-      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.095, 14, 12), whiteMat);
-      eye.position.set(0.16, 0.27, s * 0.3);
-      eye.scale.set(0.8, 1.1, 0.9);
-      const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 10), pupilMat);
-      pupil.position.set(0.23, 0.28, s * 0.3);
-      const brow = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.035, 0.05), browMat);
-      brow.position.set(0.17, 0.4, s * 0.3);
-      brow.rotation.z = 0.35;
-      this.top.add(eye, pupil, brow);
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.075, 14, 12), whiteMat);
+      eye.position.set(0.08, 0.41, s * 0.13);
+      const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 10), pupilMat);
+      pupil.position.set(0.13, 0.435, s * 0.13);
+      (s > 0 ? this.top : this.bottom).add(eye, pupil);
     }
-    // fleur de tiaré
-    const flower = new THREE.Group();
-    const petalMat = new THREE.MeshStandardMaterial({ color: this.theme.pacman.flower, roughness: 0.6 });
-    for (let i = 0; i < 6; i++) {
-      const petal = new THREE.Mesh(new THREE.SphereGeometry(0.075, 10, 8), petalMat);
-      petal.scale.set(1, 0.35, 0.55);
-      const a = (i / 6) * Math.PI * 2;
-      petal.position.set(Math.cos(a) * 0.085, 0, Math.sin(a) * 0.085);
-      petal.rotation.y = -a;
-      flower.add(petal);
-    }
-    const center = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), new THREE.MeshStandardMaterial({ color: 0xffc83c, emissive: 0xaa6600, emissiveIntensity: 0.4 }));
-    flower.add(center);
-    flower.position.set(-0.12, 0.38, 0.22);
-    flower.rotation.set(0.5, 0, -0.4);
-    this.top.add(flower);
 
     // aura (mode Mana)
-    this.aura = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.glowTexture('rgba(255,236,140,1)', 'rgba(255,200,60,0)'), color: 0xffe07a, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
-    this.aura.scale.set(2.2, 2.2, 1);
-    this.aura.visible = true;
-    this.aura.material.opacity = 0.35;
+    this.aura = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.glowTexture('rgba(255,236,140,1)', 'rgba(255,200,60,0)'), color: 0xffe07a, transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+    this.aura.scale.set(1.7, 1.7, 1);
     g.add(this.aura);
 
     this.body = new THREE.Group();
@@ -1838,8 +1817,8 @@ class Pacman extends Mover {
     });
     this.moving = this.dir !== DIRS.none;
     if (this.moving) {
-      this.mouthT += dt * 11;
-      this.mouth = Math.abs(Math.sin(this.mouthT));
+      this.mouthT += dt * 13;
+      this.mouth = 0.08 + 0.92 * (0.5 - 0.5 * Math.cos(this.mouthT)); // ouverture/fermeture douce
       this.targetYaw = yawFor(this.dir);
     } else {
       this.mouth = THREE.MathUtils.lerp(this.mouth, 0.08, 1 - Math.exp(-dt * 10));
@@ -1868,9 +1847,9 @@ class Pacman extends Mover {
     d = Math.atan2(Math.sin(d), Math.cos(d));
     this.yaw += d * (dt ? 1 - Math.exp(-dt * 22) : 1);
     this.body.rotation.y = this.yaw;
-    const a = this.mouth * 0.62;
-    this.top.rotation.z = a;
-    this.bottom.rotation.z = -a;
+    const a = this.mouth * 0.6;
+    this.top.rotation.y = -a;   // moitié z>0 : s'ouvre vers +z
+    this.bottom.rotation.y = a; // moitié z<0 : s'ouvre vers -z
     // petit rebond en marchant
     this.mesh.position.y = 0.46 + (this.moving ? Math.abs(Math.sin(this.mouthT * 0.5)) * 0.03 : 0);
     if (this.powered) {
