@@ -2904,8 +2904,9 @@ class Game {
     document.getElementById('btn-next').addEventListener('click', () => this.newGame());
     document.getElementById('btn-resume').addEventListener('click', () => this.togglePause());
     document.getElementById('btn-restart').addEventListener('click', () => { this.audio.init(); this.newGame(); });
-    // tirage au sort : lightbox par-dessus le jeu
+    // tirage au sort et partenaires sponsors : lightbox par-dessus le jeu (la partie reste en pause)
     for (const b of document.querySelectorAll('.btn-draw')) b.addEventListener('click', () => this.openDraw());
+    for (const a of document.querySelectorAll('.link-line a')) a.addEventListener('click', (e) => { e.preventDefault(); this.openLightbox(a.href, a.textContent.trim()); });
     document.getElementById('lb-close').addEventListener('click', () => this.closeDraw());
     document.getElementById('lb-frame').addEventListener('load', () => { document.querySelector('.lb-loading').hidden = true; });
     document.getElementById('lightbox').addEventListener('click', (e) => { if (e.target.id === 'lightbox') this.closeDraw(); });
@@ -2923,9 +2924,13 @@ class Game {
   }
 
   openDraw() {
+    this.openLightbox(`${DRAW_URL}?score=${encodeURIComponent(this.score)}`, 'Participer au tirage');
+  }
+  /** Ouvre une page dans la lightbox, par-dessus le jeu, sans quitter la partie */
+  openLightbox(url, title) {
     const lb = document.getElementById('lightbox');
-    const url = `${DRAW_URL}?score=${encodeURIComponent(this.score)}`;
     const frame = document.getElementById('lb-frame');
+    document.getElementById('lb-title').textContent = title;
     document.getElementById('lb-ext').href = url;
     document.querySelector('.lb-loading').hidden = false;
     if (frame.src !== url) frame.src = url;
