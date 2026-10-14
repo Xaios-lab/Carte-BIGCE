@@ -178,6 +178,7 @@ export class Game {
     this.world.resetDots(); this.world.resetManas(); this.world.setWallFlash(0);
     this.ui.resetPartners();
     this.dotsEaten = 0; this.dotsTotal = this.maze.dots.length;
+    this.manaReminder = false;
     this.bonusIndex = 0; this.bonus.active = false; this.bonus.mesh.visible = false;
     this._startRound(true);
   }
@@ -342,7 +343,7 @@ export class Game {
       this.bonus.timer -= dt;
       if (this.bonus.timer <= 0) { this.bonus.active = false; this.bonus.mesh.visible = false; }
       else {
-        const b = maze.bonusCell;
+        const b = this.bonusCellNow || maze.bonusCell;
         if (Math.abs(this.pac.x - b.c) < 0.5 && Math.abs(this.pac.z - b.r) < 0.5) this._eatBonus();
       }
     }
@@ -376,11 +377,26 @@ export class Game {
         this.bonusIndex++;
         this._spawnBonus();
       }
-      if (this.dotsEaten >= this.dotsTotal) this._levelComplete();
+      this._checkComplete();
       return;
     }
     const mana = this.world.manas.find((m) => !m.eaten && m.cell.c === cell.c && m.cell.r === cell.r);
-    if (mana) this._eatMana(mana);
+    if (mana) { this._eatMana(mana); this._checkComplete(); }
+  }
+
+  /** Le niveau est terminé quand TOUS les pointillés ET tous les médaillons sont mangés */
+  _checkComplete() {
+    const manasLeft = this.world.manas.filter((m) => !m.eaten).length;
+    if (this.dotsEaten < this.dotsTotal) return;
+    if (manasLeft > 0) {
+      if (!this.manaReminder) {
+        this.manaReminder = true;
+        this.ui.message(manasLeft > 1 ? `ENCORE ${manasLeft} MÉDAILLONS !` : 'ENCORE 1 MÉDAILLON !', 'ready');
+        setTimeout(() => { if (this.state === 'playing') this.ui.message(null); }, 2200);
+      }
+      return;
+    }
+    this._levelComplete();
   }
 
   /** Position écran de Pac-Man (0..1), pour placer les effets sans le masquer */
@@ -423,7 +439,11 @@ export class Game {
   }
 
   _spawnBonus() {
-    const b = this.maze.bonusCell;
+    // case aléatoire du labyrinthe, loin de Pac-Man et hors tunnels
+    const far = this.maze.dots.filter((d) => !this.maze.isTunnelCell(d.c, d.r) && Math.hypot(d.c - this.pac.x, d.r - this.pac.z) >= 6);
+    const pool = far.length ? far : this.maze.dots;
+    const b = pool[Math.floor(Math.random() * pool.length)] || this.maze.bonusCell;
+    this.bonusCellNow = { c: b.c, r: b.r };
     const w = this.maze.toWorld(b.c, b.r);
     this.bonus.mesh.position.set(w.x, 0, w.z);
     this.bonus.mesh.visible = true;

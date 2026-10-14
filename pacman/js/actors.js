@@ -379,7 +379,7 @@ export class Ghost extends Mover {
   get isDangerous() { return this.state === 'active' && !this.frightened && !this.frozen; }
   get isEdible() { return this.state === 'active' && (this.frightened || this.frozen); }
 
-  setFrozen(on) { this.frozen = on && this.state === 'active'; this.applyLook(); }
+  setFrozen(on) { this.frozen = on && this.state !== 'eyes' && this.state !== 'entering'; this.applyLook(); }
 
   setFrightened(on) {
     if (on) {
@@ -428,7 +428,7 @@ export class Ghost extends Mover {
    */
   update(ctx) {
     const { dt, maze } = { dt: ctx.dt, maze: this.maze };
-    if (this.frozen && this.state === 'active') { this.syncMesh(dt); return; } // figé sur place
+    if (this.frozen && this.state !== 'eyes' && this.state !== 'entering') { this.syncMesh(dt); return; } // figé sur place (même dans la maison)
     const hc = ctx.houseCenter, he = ctx.houseExit;
     if (this.state === 'house') {
       this.bobPhase += dt * 4;
