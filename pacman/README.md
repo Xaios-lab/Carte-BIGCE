@@ -18,6 +18,11 @@ Pour une réactivité optimale :
 * activer l'accélération matérielle de la WebView (Android : `setLayerType(LAYER_TYPE_HARDWARE)`, `hardwareAccelerated="true"`) ;
 * ne pas superposer de couche HTML transparente au-dessus du jeu (elle intercepte les gestes).
 
+## Page des partenaires sponsors
+`sponsors/index.html` (+ dossier `sponsors/logos/`) ou `sponsors/sponsors-standalone.html` (tout-en-un),
+à déployer sur `/PacMana/sponsors/`. Les logos sont listés dans `sponsors/logos.json` ;
+après modification, régénérer avec `node build-sponsors.mjs`.
+
 ## Jouer
 * **Mobile** : glisser le doigt n'importe où sur l'écran (joystick flottant). On peut enchaîner les virages sans relever le doigt.
 * **PC / Mac** : flèches, ZQSD ou WASD. `P` / `Échap` : pause. `Entrée` / `Espace` : valider.
