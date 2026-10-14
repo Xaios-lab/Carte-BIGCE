@@ -12,7 +12,7 @@
 // ---------------------------------------------------------------------------
 
 export const PARTNERS = {
-  agritech: { id: 'agritech', name: 'Agritech',           logo: 'assets/logos/agritech.png', color: '#7cc43a' },
+  charcuterie: { id: 'charcuterie', name: 'Charcuterie du Pacifique', logo: 'assets/logos/charcuterie.png', color: '#c8102e' },
   ace:      { id: 'ace',      name: 'ACE Sin Tung Hing',  logo: 'assets/logos/ace.png',      color: '#e8232a' },
   gan:      { id: 'gan',      name: 'GAN',                logo: 'assets/logos/gan.png',      color: '#f5b400' },
   taapuna:  { id: 'taapuna',  name: 'Taapuna La Boutique',logo: 'assets/logos/taapuna.png',  color: '#1b1b1b' },
@@ -48,7 +48,7 @@ export const LEVELS = [
     subtitle: 'La jungle de Taapuna',
     theme: 'jungle',
     // Manas dans l'ordre de lecture du labyrinthe : haut-gauche, haut-droit, centre-haut, centre-bas, bas-gauche, bas-droit
-    mana: ['agritech', 'ace', 'amouy', 'guilloux', 'gan', 'taapuna'],
+    mana: ['charcuterie', 'ace', 'amouy', 'guilloux', 'gan', 'taapuna'],
     specials: { ratio: 0.1, star: 50, shell: 30 },   // étoiles de mer / coquillages parmi les pointillés
     freezeTime: 5,                                   // super-pouvoir de la carte BIG CE : gel des esprits
     speeds: { pacman: 7.6, pacmanEating: 7.2, ghost: 5.9, frightened: 3.8, tunnel: 3.4, eyes: 15 },

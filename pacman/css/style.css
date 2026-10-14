@@ -123,9 +123,11 @@ button.icon:active { transform: scale(.92); }
   86% { transform: scale(1) rotateY(360deg); opacity: 1; }
   100% { transform: scale(.4) rotateY(360deg) translateY(-90px); opacity: 0; }
 }
-.mana-burst.card .coin { width: min(56vw, 280px); aspect-ratio: 1010 / 642; margin: calc(min(56vw, 280px) * 642 / 1010 / -2) 0 0 calc(min(56vw, 280px) / -2); }
+.mana-burst.card .coin { width: min(40vw, 200px); aspect-ratio: 1010 / 642; margin: calc(min(40vw, 200px) * 642 / 1010 / -2) 0 0 calc(min(40vw, 200px) / -2); }
 .mana-burst.card .side { border-radius: 18px; }
-.mana-burst.card .label { top: calc(min(56vw, 280px) * 642 / 1010 / 2 + 14px); }
+.mana-burst.card .label { top: calc(min(40vw, 200px) * 642 / 1010 / 2 + 10px); }
+.mana-burst.card .fire { width: min(46vw, 240px); }
+.mana-burst.card .side { border-radius: 12px; }
 .mana-burst.card .fire { background: conic-gradient(from 0deg, rgba(120,220,255,0) 0deg, rgba(190,240,255,.95) 40deg, rgba(80,180,255,0) 90deg, rgba(220,250,255,.9) 150deg, rgba(60,160,255,0) 200deg, rgba(180,235,255,.95) 260deg, rgba(90,190,255,0) 320deg, rgba(190,240,255,.9) 360deg); }
 .mana-burst.card .label em { color: #bfefff; text-shadow: 0 0 20px rgba(120,220,255,.9), 0 3px 0 #0a2a40; }
 .mana-burst .label { position: absolute; left: 50%; top: calc(min(36vw, 180px) / 2 + 14px); transform: translateX(-50%); text-align: center; white-space: nowrap; animation: label 2.8s ease-out forwards; }
