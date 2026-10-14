@@ -16,8 +16,9 @@ export const PARTNERS = {
   ace:      { id: 'ace',      name: 'ACE Sin Tung Hing',  logo: 'assets/logos/ace.png',      color: '#e8232a' },
   gan:      { id: 'gan',      name: 'GAN',                logo: 'assets/logos/gan.png',      color: '#f5b400' },
   taapuna:  { id: 'taapuna',  name: 'Taapuna La Boutique',logo: 'assets/logos/taapuna.png',  color: '#1b1b1b' },
-  // Partenaires préférentiels (Manas du centre) : remplacer le logo BIG CE par les leurs
-  bigce:    { id: 'bigce',    name: 'BIG CE',             logo: 'assets/logos/bigce.png',    color: '#e9b949' },
+  // Partenaires préférentiels (Manas du centre)
+  amouy:    { id: 'amouy',    name: 'Amouy',              logo: 'assets/logos/amouy.png',    color: '#f28b1e' },
+  guilloux: { id: 'guilloux', name: 'Guilloux',           logo: 'assets/logos/guilloux.png', color: '#d4231f' },
 };
 
 export const THEMES = {
@@ -47,7 +48,7 @@ export const LEVELS = [
     subtitle: 'La jungle de Taapuna',
     theme: 'jungle',
     // Manas dans l'ordre de lecture du labyrinthe : haut-gauche, haut-droit, centre-haut, centre-bas, bas-gauche, bas-droit
-    mana: ['agritech', 'ace', 'bigce', 'bigce', 'gan', 'taapuna'],
+    mana: ['agritech', 'ace', 'amouy', 'guilloux', 'gan', 'taapuna'],
     specials: { ratio: 0.1, star: 50, shell: 30 },   // étoiles de mer / coquillages parmi les pointillés
     freezeTime: 5,                                   // super-pouvoir de la carte BIG CE : gel des esprits
     speeds: { pacman: 7.6, pacmanEating: 7.2, ghost: 5.9, frightened: 3.8, tunnel: 3.4, eyes: 15 },
