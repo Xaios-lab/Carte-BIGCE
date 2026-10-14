@@ -14,6 +14,7 @@ import { loadImageTexture, glowTexture } from './textures.js';
 
 const SCORE = { dot: 10, mana: 50, ghost: [200, 400, 800, 1600], extraLifeAt: 10000 };
 const DRAW_URL = 'https://formulaire.big-ce.com/pacmana'; // formulaire du tirage au sort
+const SPONSORS_URL = 'https://www.guide2026.big-ce.com/PacMana/sponsors';
 const buzz = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch { /* indisponible */ } };
 
 export class Game {
@@ -133,7 +134,7 @@ export class Game {
     document.getElementById('btn-restart').addEventListener('click', () => { this.audio.init(); this.newGame(); });
     // tirage au sort et partenaires sponsors : lightbox par-dessus le jeu (la partie reste en pause)
     for (const b of document.querySelectorAll('.btn-draw')) b.addEventListener('click', () => this.openDraw());
-    for (const a of document.querySelectorAll('.link-line a')) a.addEventListener('click', (e) => { e.preventDefault(); this.openLightbox(a.href, a.textContent.trim()); });
+    for (const a of document.querySelectorAll('.link-line a')) a.addEventListener('click', (e) => { e.preventDefault(); this.openSponsors(); });
     document.getElementById('lb-close').addEventListener('click', () => this.closeDraw());
     document.getElementById('lb-frame').addEventListener('load', () => { document.querySelector('.lb-loading').hidden = true; });
     // la page affichée dans la lightbox (sponsors) peut demander sa fermeture
@@ -153,12 +154,34 @@ export class Game {
   }
 
   openDraw() {
-    this.openLightbox(`${DRAW_URL}?score=${encodeURIComponent(this.score)}`, 'Participer au tirage');
+    const url = `${DRAW_URL}?score=${encodeURIComponent(this.score)}`;
+    if (this.isEmbedded) {
+      // WebView d'application : le cadre intégré serait intercepté => lien direct, l'app ouvre son navigateur
+      const a = document.createElement('a');
+      a.href = url; a.target = '_blank'; a.rel = 'noopener';
+      document.body.appendChild(a); a.click(); a.remove();
+      return;
+    }
+    this.openLightbox(url, 'Participer au tirage');
+  }
+  /** Partenaires sponsors : contenu intégré au jeu, sans page externe */
+  openSponsors() {
+    const lb = document.getElementById('lightbox');
+    document.getElementById('lb-title').textContent = 'Nos partenaires sponsors';
+    document.getElementById('lb-ext').href = SPONSORS_URL;
+    document.querySelector('.lb-loading').hidden = true;
+    document.getElementById('lb-frame').hidden = true;
+    const sp = document.getElementById('lb-sponsors');
+    sp.hidden = false; sp.scrollTop = 0;
+    lb.hidden = false;
+    document.getElementById('lb-close').focus();
   }
   /** Ouvre une page dans la lightbox, par-dessus le jeu, sans quitter la partie */
   openLightbox(url, title) {
     const lb = document.getElementById('lightbox');
     const frame = document.getElementById('lb-frame');
+    frame.hidden = false;
+    document.getElementById('lb-sponsors').hidden = true;
     document.getElementById('lb-title').textContent = title;
     document.getElementById('lb-ext').href = url;
     document.querySelector('.lb-loading').hidden = false;
@@ -170,6 +193,7 @@ export class Game {
     const lb = document.getElementById('lightbox');
     lb.hidden = true;
     document.getElementById('lb-frame').src = 'about:blank';
+    document.getElementById('lb-sponsors').hidden = true;
   }
 
   togglePause() {

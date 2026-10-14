@@ -14,6 +14,7 @@ const dataUri = (p) => `data:${MIME[path.extname(p)]};base64,${fs.readFileSync(p
 const assets = [];
 const walk = (d) => fs.readdirSync(path.join(root, d)).forEach((f) => { const p = d + '/' + f; fs.statSync(path.join(root, p)).isDirectory() ? walk(p) : assets.push(p); });
 walk('assets');
+walk('sponsors/logos');
 const inlineAssets = (s, prefix = '') => assets.reduce((acc, a) => acc.split(prefix + a).join(dataUri(a)), s);
 
 // --- Three.js : module ES -> objet THREE
