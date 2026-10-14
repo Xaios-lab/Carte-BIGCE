@@ -58,6 +58,6 @@ pacman/
   assets/logos/       pastilles partenaires
   assets/bigce.png    logo BIG CE (écran titre)
   assets/carte-2026.webp  carte BIG CE (bonus en jeu)
-  assets/audio/       musique « Poursuite dans la forêt » (AAC)
+  assets/audio/       musique « Poursuite dans la forêt » (MP3 mono)
   assets/splash.webp  illustration de l'écran titre
 ```

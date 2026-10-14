@@ -30,38 +30,92 @@ export class AudioFX {
     lsSet('pacmana.muted', m ? '1' : '0');
     if (this.master) this.master.gain.setTargetAtTime(m ? 0 : 0.6, this.ctx.currentTime, 0.05);
     if (this.music) this.music.muted = m;
+    if (this.musicGain && m) this.musicGain.gain.value = this.musicVolume; // réinitialise un éventuel ducking
   }
 
-  // --- musique (fichier) : « Poursuite dans la forêt »
+  // --- musique « Poursuite dans la forêt » : décodée et jouée dans le même moteur WebAudio que les sons
+  //     (sur iPhone, un lecteur <audio> séparé se fait couper par les sons WebAudio ; ici tout est mixé ensemble)
   loadMusic(url) {
-    const a = new Audio();
-    a.loop = true; a.preload = 'auto'; a.volume = this.musicVolume; a.muted = this.muted;
-    this.music = a;
-    this.musicPlaying = false;
+    this.musicSrc = null; this.musicBuffer = null; this.musicNode = null;
+    this.musicWanted = false; this.musicPlaying = false; this.musicOffset = 0;
     if (url.startsWith('#')) {
-      // version tout-en-un : les données audio arrivent en fin de fichier, on attend qu'elles soient là
+      // version tout-en-un : les données arrivent en fin de fichier, on attend qu'elles soient là
       const id = url.slice(1);
       const tryLoad = () => {
         const el = document.getElementById(id);
-        if (el && el.textContent.length > 100) { a.src = el.textContent.trim(); if (this.musicWanted) this.playMusic(); }
+        // le bloc de données n'est complet qu'une fois le document entièrement reçu
+        if (el && document.readyState === 'complete' && el.textContent.length > 100) { this.musicSrc = el.textContent.trim(); if (this.musicWanted) this.playMusic(); }
         else setTimeout(tryLoad, 400);
       };
       tryLoad();
-    } else a.src = url;
+    } else this.musicSrc = url;
   }
-  get musicVolume() { return 0.55; }
+  get musicVolume() { return 0.32; }
+
+  async _ensureMusicBuffer() {
+    if (this.musicBuffer || !this.ctx || !this.musicSrc) return this.musicBuffer;
+    if (this.musicDecoding) return this.musicDecoding;
+    this.musicDecoding = (async () => {
+      let bytes;
+      if (this.musicSrc.startsWith('data:')) {
+        const b64 = this.musicSrc.slice(this.musicSrc.indexOf(',') + 1);
+        const bin = atob(b64); bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      } else {
+        bytes = new Uint8Array(await (await fetch(this.musicSrc)).arrayBuffer());
+      }
+      const buf = await new Promise((res, rej) => { const p = this.ctx.decodeAudioData(bytes.buffer, res, rej); if (p && p.then) p.then(res, rej); });
+      this.musicBuffer = buf;
+      return buf;
+    })().catch((e) => { console.warn('musique : décodage impossible, repli <audio>', e); this.musicFallback = true; return null; });
+    return this.musicDecoding;
+  }
+
   playMusic() {
-    if (!this.music) return;
     this.musicWanted = true;
-    if (!this.music.src) return; // pas encore reçue : démarrera dès réception
-    const p = this.music.play();
-    this.musicPlaying = true;
+    if (!this.ctx || !this.musicSrc) return;
+    if (this.musicFallback) return this._playFallback();
+    this._ensureMusicBuffer().then((buf) => {
+      if (!buf) return this._playFallback();
+      if (!this.musicWanted || this.musicPlaying) return;
+      if (!this.musicGain) { this.musicGain = this.ctx.createGain(); this.musicGain.gain.value = this.musicVolume; this.musicGain.connect(this.master); }
+      const src = this.ctx.createBufferSource();
+      src.buffer = buf; src.loop = true;
+      src.connect(this.musicGain);
+      const offset = this.musicOffset % buf.duration;
+      src.start(0, offset);
+      this.musicNode = src;
+      this.musicStartedAt = this.ctx.currentTime - offset;
+      this.musicPlaying = true;
+    });
+  }
+  _stopNode() {
+    if (this.musicNode) { try { this.musicNode.stop(); } catch { /* déjà arrêté */ } this.musicNode.disconnect(); this.musicNode = null; }
+    this.musicPlaying = false;
+  }
+  pauseMusic() {
+    this.musicWanted = false;
+    if (this.musicFallback) { if (this.music) this.music.pause(); this.musicPlaying = false; return; }
+    if (this.musicNode && this.musicBuffer) this.musicOffset = (this.ctx.currentTime - this.musicStartedAt) % this.musicBuffer.duration;
+    this._stopNode();
+  }
+  stopMusic() {
+    this.musicWanted = false; this.musicOffset = 0;
+    if (this.musicFallback) { if (this.music) { this.music.pause(); if (this.music.src) this.music.currentTime = 0; } this.musicPlaying = false; return; }
+    this._stopNode();
+  }
+  /** Baisse temporaire de la musique (mode Mana) : k dans [0,1] */
+  duck(k) {
+    const v = this.musicVolume * k;
+    if (this.musicGain && this.ctx) { if (Math.abs(this.musicGain.gain.value - v) > 0.01) this.musicGain.gain.setTargetAtTime(v, this.ctx.currentTime, 0.15); }
+    else if (this.music) this.music.volume += (v - this.music.volume) * 0.1;
+  }
+  // repli : lecteur <audio> classique si le décodage WebAudio échoue
+  _playFallback() {
+    if (!this.music) { const a = new Audio(); a.loop = true; a.volume = this.musicVolume; a.muted = this.muted; a.src = this.musicSrc; this.music = a; }
+    const p = this.music.play(); this.musicPlaying = true;
     if (p && p.catch) p.catch(() => { this.musicPlaying = false; });
   }
-  pauseMusic() { this.musicWanted = false; if (this.music) { this.music.pause(); this.musicPlaying = false; } }
-  stopMusic() { this.musicWanted = false; if (this.music) { this.music.pause(); if (this.music.src) this.music.currentTime = 0; this.musicPlaying = false; } }
-  /** Baisse temporaire de la musique (mode Mana) : k dans [0,1] */
-  duck(k) { if (this.music) this.music.volume += (this.musicVolume * k - this.music.volume) * 0.1; }
 
   _osc(type, freq, t0, dur, vol = 0.2, { attack = 0.005, release = 0.05, to = null, dest = null } = {}) {
     const c = this.ctx;

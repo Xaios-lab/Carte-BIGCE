@@ -24,7 +24,7 @@ export class Game {
     // WebView d'application / page intégrée (iframe) : profil allégé d'office
     const ua = navigator.userAgent || '';
     this.isEmbedded = /\bwv\b/.test(ua) || (/iPhone|iPad|iPod/.test(ua) && !/Safari\//.test(ua)) || window.self !== window.top || matchMedia('(display-mode: standalone)').matches;
-    const dpr = Math.min(window.devicePixelRatio || 1, this.isEmbedded ? 1.25 : this.isTouch ? 1.5 : 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, this.isEmbedded ? 1 : this.isTouch ? 1.5 : 2);
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: !this.isEmbedded, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(dpr);
     this.renderer.shadowMap.enabled = !this.isEmbedded;
@@ -38,14 +38,14 @@ export class Game {
       shadows: !low,
       leafShadows: !low && !this.isTouch,
       shadowSize: this.isTouch ? 1024 : 2048,
-      leaves: low ? 45 : this.isTouch ? 80 : 150,
-      fireflies: low ? 25 : this.isTouch ? 45 : 90,
+      leaves: low ? 30 : this.isTouch ? 80 : 150,
+      fireflies: low ? 16 : this.isTouch ? 45 : 90,
       torchLights: low ? 1 : this.isTouch ? 2 : 4,
-      flowers: low ? 20 : this.isTouch ? 36 : 60,
-      fallingLeaves: low ? 8 : this.isTouch ? 16 : 30,
+      flowers: low ? 12 : this.isTouch ? 36 : 60,
+      fallingLeaves: low ? 6 : this.isTouch ? 16 : 30,
     };
     this.qualityStep = 0;
-    if (low) { this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25)); this.renderer.shadowMap.enabled = false; this.qualityStep = 1; }
+    if (low) { this.renderer.setPixelRatio(1); this.renderer.shadowMap.enabled = false; this.qualityStep = 2; this.liteFromStart = true; }
     this.ui = new UI(PARTNERS);
     this.audio = new AudioFX();
     this.input = new Input(document.getElementById('app'), document.getElementById('joystick'));
@@ -70,8 +70,9 @@ export class Game {
     const logoTextures = { __partners: PARTNERS };
     await Promise.all(level.mana.map(async (id) => { logoTextures[id] = await loadImageTexture(PARTNERS[id].logo); }));
     this.cardTex = await loadImageTexture(level.bonus.image).catch(() => null);
-    this.audio.loadMusic('assets/audio/poursuite-foret.m4a');
+    this.audio.loadMusic('assets/audio/poursuite-foret.mp3');
     this.world = new World({ maze: this.maze, level, theme, logoTextures, quality: this.quality });
+    if (this.liteFromStart) this.world.setLite(true);
     this.scene = this.world.scene;
     this.rig = new CameraRig(this.maze, this.renderer);
     this.rig.minCellPx = this.isTouch ? 31 : 28;
@@ -177,14 +178,20 @@ export class Game {
     document.getElementById('lb-frame').hidden = true;
     const sp = document.getElementById('lb-sponsors');
     // images différées (version tout-en-un : données en fin de fichier) ou dossier sponsors/logos/
-    let data = null;
-    const el = document.getElementById('sponsors-data');
-    if (el) { try { data = JSON.parse(el.textContent); } catch { data = null; } }
-    for (const img of sp.querySelectorAll('img[data-file]')) {
-      if (img.src) continue;
-      const f = img.dataset.file;
-      img.src = data && data[f] ? data[f] : 'sponsors/logos/' + f;
-    }
+    const fill = () => {
+      const el = document.getElementById('sponsors-data');
+      let data = null;
+      if (el) {
+        if (document.readyState !== 'complete') { setTimeout(fill, 400); return; } // données encore en cours de réception
+        try { data = JSON.parse(el.textContent); } catch { data = null; }
+      }
+      for (const img of sp.querySelectorAll('img[data-file]')) {
+        if (img.src) continue;
+        const f = img.dataset.file;
+        img.src = data && data[f] ? data[f] : 'sponsors/logos/' + f;
+      }
+    };
+    fill();
     sp.hidden = false; sp.scrollTop = 0;
     lb.hidden = false;
     document.getElementById('lb-close').focus();

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
-const MIME = { '.png': 'image/png', '.webp': 'image/webp', '.m4a': 'audio/mp4', '.jpg': 'image/jpeg' };
+const MIME = { '.png': 'image/png', '.webp': 'image/webp', '.m4a': 'audio/mp4', '.mp3': 'audio/mpeg', '.jpg': 'image/jpeg' };
 const dataUri = (p) => `data:${MIME[path.extname(p)]};base64,${fs.readFileSync(path.join(root, p)).toString('base64')}`;
 
 // --- assets -> data URIs
@@ -16,7 +16,7 @@ const walk = (d) => fs.readdirSync(path.join(root, d)).forEach((f) => { const p 
 walk('assets');
 walk('sponsors/logos');
 // gros fichiers déplacés en fin de document (le jeu démarre avant de les avoir reçus)
-const DEFERRED = ['assets/audio/poursuite-foret.m4a', 'assets/splash.webp'];
+const DEFERRED = ['assets/audio/poursuite-foret.mp3', 'assets/splash.webp'];
 const inlineAssets = (s, prefix = '') => assets.filter((a) => !DEFERRED.includes(a) && !a.startsWith('sponsors/logos/')).reduce((acc, a) => acc.split(prefix + a).join(dataUri(a)), s);
 
 // --- Three.js : module ES -> objet THREE
@@ -39,7 +39,7 @@ const convert = (name) => {
 };
 let js = `const THREE = (() => {\n${three}\n})();\n` + order.map(convert).join('\n');
 js += `\n(() => {\n${read('js/main.js').replace(/^import \{([^}]+)\} from '([^']+)';/gm, (_, n, f) => `const {${n}} = ${modName(f)};`)}\n})();`;
-js = js.split('assets/audio/poursuite-foret.m4a').join('#music-data');
+js = js.split('assets/audio/poursuite-foret.mp3').join('#music-data');
 js = inlineAssets(js);
 
 // --- CSS + HTML
@@ -48,7 +48,7 @@ let html = read('index.html');
 html = html.replace(/<script type="importmap">[\s\S]*?<\/script>\s*/, '');
 html = html.replace(/<link rel="stylesheet" href="css\/style.css">/, `<style>\n${css}\n</style>`);
 const sponsorsData = Object.fromEntries(assets.filter((a) => a.startsWith('sponsors/logos/')).map((a) => [path.basename(a), dataUri(a)]));
-const tail = `<style>.screen .splash { background-image: url(${dataUri('assets/splash.webp')}); }</style>\n<script type="text/plain" id="sponsors-data">${JSON.stringify(sponsorsData)}</script>\n<script type="text/plain" id="music-data">${dataUri('assets/audio/poursuite-foret.m4a')}</script>`;
+const tail = `<style>.screen .splash { background-image: url(${dataUri('assets/splash.webp')}); }</style>\n<script type="text/plain" id="sponsors-data">${JSON.stringify(sponsorsData)}</script>\n<script type="text/plain" id="music-data">${dataUri('assets/audio/poursuite-foret.mp3')}</script>`;
 html = html.replace(/<script type="module" src="js\/main.js"><\/script>/, () => `<script>\n${js}\n</script>\n${tail}`);
 html = inlineAssets(html);
 html = html.replace('<title>Pac-Mana · BIG CE</title>', '<title>Pac-Mana · BIG CE (version autonome)</title>');
