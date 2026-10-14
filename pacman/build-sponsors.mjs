@@ -69,10 +69,22 @@ const page = (src) => `<!DOCTYPE html>
       ${logos.map((l) => `<figure class="card" tabindex="0"><img src="${src(l)}" alt="${esc(l.name)}" loading="lazy" width="300" height="150"></figure>`).join('\n      ')}
     </main>
     <footer>
-      <a class="btn" href="${GAME_URL}">← Retour au jeu</a>
+      <a class="btn" id="back" href="${GAME_URL}">← Retour au jeu</a>
       <p class="note">BIG CE · Carte partenaires 2026</p>
     </footer>
   </div>
+  <script>
+    // Dans la lightbox du jeu : on demande au jeu de fermer la fenêtre (la partie reprend où elle en était).
+    // Ouverte seule : on retourne à l'adresse du jeu.
+    document.getElementById('back').addEventListener('click', (e) => {
+      if (window.parent && window.parent !== window) {
+        e.preventDefault();
+        window.parent.postMessage({ type: 'pacmana:close' }, '*');
+        document.getElementById('back').textContent = '✕ Fermer';
+      }
+    });
+    if (window.parent && window.parent !== window) document.getElementById('back').textContent = '✕ Fermer la fenêtre';
+  </script>
 </body>
 </html>
 `;

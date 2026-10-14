@@ -2909,6 +2909,8 @@ class Game {
     for (const a of document.querySelectorAll('.link-line a')) a.addEventListener('click', (e) => { e.preventDefault(); this.openLightbox(a.href, a.textContent.trim()); });
     document.getElementById('lb-close').addEventListener('click', () => this.closeDraw());
     document.getElementById('lb-frame').addEventListener('load', () => { document.querySelector('.lb-loading').hidden = true; });
+    // la page affichée dans la lightbox (sponsors) peut demander sa fermeture
+    window.addEventListener('message', (e) => { if (e.data && e.data.type === 'pacmana:close') this.closeDraw(); });
     document.getElementById('lightbox').addEventListener('click', (e) => { if (e.target.id === 'lightbox') this.closeDraw(); });
     window.addEventListener('keydown', (e) => { if (e.code === 'Escape' && !document.getElementById('lightbox').hidden) this.closeDraw(); });
     document.getElementById('btn-pause').addEventListener('click', () => this.togglePause());
