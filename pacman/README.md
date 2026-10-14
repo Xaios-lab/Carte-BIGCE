@@ -9,6 +9,15 @@ Pac‑Man 3D « jungle polynésienne », mobile first, sans dépendance serveur 
 un double-clic l'ouvre directement dans Chrome / Safari / Firefox. Pour la régénérer après une
 modification du code : `node build-standalone.mjs` (Node ≥ 18, aucune dépendance).
 
+## Intégration dans une application (WebView / iframe)
+Le jeu détecte une WebView ou une page intégrée et passe automatiquement en profil allégé
+(résolution 1,25×, ombres coupées, décor réduit) ; `?q=high` force la qualité maximale.
+Pour une réactivité optimale :
+* ouvrir le jeu en plein écran dans la WebView plutôt que dans une `<iframe>` ; si une iframe est
+  indispensable, lui donner `allow="autoplay"` et mettre `touch-action: none; overflow: hidden` sur la page hôte ;
+* activer l'accélération matérielle de la WebView (Android : `setLayerType(LAYER_TYPE_HARDWARE)`, `hardwareAccelerated="true"`) ;
+* ne pas superposer de couche HTML transparente au-dessus du jeu (elle intercepte les gestes).
+
 ## Jouer
 * **Mobile** : glisser le doigt n'importe où sur l'écran (joystick flottant). On peut enchaîner les virages sans relever le doigt.
 * **PC / Mac** : flèches, ZQSD ou WASD. `P` / `Échap` : pause. `Entrée` / `Espace` : valider.

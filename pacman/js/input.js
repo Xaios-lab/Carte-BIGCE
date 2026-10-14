@@ -19,7 +19,7 @@ export class Input {
     this.origin = null;
     this.pointerId = null;
     this.lastDir = null;
-    this.threshold = 14;
+    this.threshold = 10;
     this.showJoystick = () => true;
 
     window.addEventListener('keydown', (e) => {
@@ -30,40 +30,64 @@ export class Input {
       if (e.code === 'KeyP' || e.code === 'Escape') { this.onPause(); }
     });
 
-    const down = (e) => {
-      if (e.target.closest('button, a, .no-joy')) return;
-      if (this.pointerId !== null) return;
-      this.pointerId = e.pointerId;
-      this.origin = { x: e.clientX, y: e.clientY };
+    // --- logique commune (souris et tactile)
+    const begin = (id, x, y, target) => {
+      if (target && target.closest && target.closest('button, a, .no-joy')) return false;
+      if (this.pointerId !== null) return false;
+      this.pointerId = id;
+      this.origin = { x, y };
       this.lastDir = null;
       this.moved = false;
-      if (this.showJoystick()) this._showJoy(e.clientX, e.clientY);
-      try { surface.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+      if (this.showJoystick()) this._showJoy(x, y);
+      return true;
     };
-    const move = (e) => {
-      if (e.pointerId !== this.pointerId || !this.origin) return;
-      const dx = e.clientX - this.origin.x, dy = e.clientY - this.origin.y;
+    const track = (id, x, y) => {
+      if (id !== this.pointerId || !this.origin) return;
+      const dx = x - this.origin.x, dy = y - this.origin.y;
       const len = Math.hypot(dx, dy);
       this._moveKnob(dx, dy);
       if (len < this.threshold) return;
       this.moved = true;
-      const d = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? DIRS.right : DIRS.left) : (dy > 0 ? DIRS.down : DIRS.up);
-      if (d !== this.lastDir) { this.lastDir = d; this.onDir(d); }
+      const ax = Math.abs(dx), ay = Math.abs(dy);
+      const hor = dx > 0 ? DIRS.right : DIRS.left, ver = dy > 0 ? DIRS.down : DIRS.up;
+      const first = ax > ay ? hor : ver, second = ax > ay ? ver : hor;
+      if (first !== this.lastDir) { this.lastDir = first; this.onDir(first); }
+      // geste en diagonale (événements espacés dans une WebView) : le 2e axe devient le virage suivant
+      if (Math.min(ax, ay) > this.threshold * 1.6) this.onDir(second);
       // l'origine suit le doigt : on peut enchaîner les virages sans relever
       const k = Math.max(0, len - this.threshold * 0.6) / len;
       this.origin.x += dx * k; this.origin.y += dy * k;
     };
-    const up = (e) => {
-      if (e.pointerId !== this.pointerId) return;
+    const end = (id) => {
+      if (id !== this.pointerId) return;
       this.pointerId = null;
       this.origin = null;
       this._hideJoy();
       if (!this.moved) this.onAction();
     };
-    surface.addEventListener('pointerdown', down);
-    surface.addEventListener('pointermove', move);
-    surface.addEventListener('pointerup', up);
-    surface.addEventListener('pointercancel', up);
+
+    // --- tactile : événements touch natifs (plus réactifs que Pointer Events dans certaines WebViews)
+    const touchOpts = { passive: false };
+    surface.addEventListener('touchstart', (e) => {
+      const t = e.changedTouches[0];
+      if (begin('t' + t.identifier, t.clientX, t.clientY, e.target)) e.preventDefault();
+    }, touchOpts);
+    surface.addEventListener('touchmove', (e) => {
+      for (const t of e.changedTouches) track('t' + t.identifier, t.clientX, t.clientY);
+      if (this.pointerId !== null) e.preventDefault();
+    }, touchOpts);
+    const touchEnd = (e) => { for (const t of e.changedTouches) end('t' + t.identifier); };
+    surface.addEventListener('touchend', touchEnd);
+    surface.addEventListener('touchcancel', touchEnd);
+
+    // --- souris / stylet : Pointer Events (les pointeurs tactiles sont déjà gérés ci-dessus)
+    surface.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'touch') return;
+      if (begin(e.pointerId, e.clientX, e.clientY, e.target)) { try { surface.setPointerCapture(e.pointerId); } catch { /* ignore */ } }
+    });
+    surface.addEventListener('pointermove', (e) => { if (e.pointerType !== 'touch') track(e.pointerId, e.clientX, e.clientY); });
+    surface.addEventListener('pointerup', (e) => { if (e.pointerType !== 'touch') end(e.pointerId); });
+    surface.addEventListener('pointercancel', (e) => { if (e.pointerType !== 'touch') end(e.pointerId); });
     surface.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 

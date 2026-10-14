@@ -386,7 +386,7 @@ export class World {
       const mat = new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.85 });
       const im = new THREE.InstancedMesh(leafGeo, mat, count);
       im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-      im.castShadow = quality.shadows;
+      im.castShadow = quality.leafShadows;
       im.userData.items = [];
       return im;
     };
@@ -429,7 +429,7 @@ export class World {
       });
       im.instanceMatrix.needsUpdate = true;
     };
-    this.animated.push((t) => { sway(leavesA, t); sway(leavesB, t); });
+    this.animated.push(Object.assign((t) => { sway(leavesA, t); sway(leavesB, t); }, { decor: true }));
 
     // --- fleurs tropicales (hibiscus) : touches de couleur dans le feuillage
     const flowerTex = TEX.flowerTexture();
@@ -445,7 +445,7 @@ export class World {
     flowers.userData.items.forEach((it, i) => flowers.setColorAt(i, it.color));
     flowers.instanceColor.needsUpdate = true;
     this.scene.add(flowers);
-    this.animated.push((t) => {
+    this.animated.push(Object.assign((t) => {
       flowers.userData.items.forEach((it, i) => {
         const wv = wind(t);
         e.set(Math.sin(t * 1.2 + it.phase) * 0.12 * wv, it.yaw + Math.sin(t * 0.8 + it.phase) * 0.1, Math.sin(t * 1.5 + it.phase) * 0.1 * wv);
@@ -453,7 +453,7 @@ export class World {
         flowers.setMatrixAt(i, m);
       });
       flowers.instanceMatrix.needsUpdate = true;
-    });
+    }, { decor: true }));
 
     // --- palmiers / grands arbres (côté éloigné et latéraux)
     const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4a3621, roughness: 0.95 });
@@ -505,7 +505,7 @@ export class World {
     const fallers = [];
     for (let i = 0; i < quality.fallingLeaves; i++) fallers.push({ x: (rand() - 0.5) * (W + 10), z: (rand() - 0.5) * (H + 10), y: rand() * 7, spd: 0.35 + rand() * 0.35, phase: rand() * 6.28, rot: rand() * 6.28 });
     this.scene.add(falling);
-    this.animated.push((t, dt) => {
+    this.animated.push(Object.assign((t, dt) => {
       const wv = wind(t);
       fallers.forEach((f, i) => {
         f.y -= f.spd * dt;
@@ -517,7 +517,7 @@ export class World {
         falling.setMatrixAt(i, m);
       });
       falling.instanceMatrix.needsUpdate = true;
-    });
+    }, { decor: true }));
 
     // --- lianes suspendues sur les côtés
     const vineMat = new THREE.MeshStandardMaterial({ color: 0x35692a, roughness: 0.9 });
@@ -595,7 +595,7 @@ export class World {
       this.scene.add(r);
       rays.push(r);
     }
-    this.animated.push((t) => { rays.forEach((r, i) => { r.rotation.y = 0.2 * i + Math.sin(t * 0.15 + i) * 0.25; }); });
+    this.animated.push(Object.assign((t) => { rays.forEach((r, i) => { r.rotation.y = 0.2 * i + Math.sin(t * 0.15 + i) * 0.25; }); }, { decor: true }));
 
     // --- lucioles
     const N = quality.fireflies;
@@ -621,6 +621,11 @@ export class World {
     });
   }
 
+  /** Mode allégé : on fige une partie du décor animé (feuillage, feuilles qui tombent, rayons) */
+  setLite(on) {
+    this.lite = on;
+  }
+
   /** Flash des murs (fin de niveau) : k dans [0,1] */
   setWallFlash(k) {
     this.wallMat.emissive.setRGB(k * 0.9, k * 0.95, k * 0.8);
@@ -629,7 +634,10 @@ export class World {
 
   update(t, dt) {
     this.time = t;
-    for (const f of this.animated) f(t, dt);
+    // en mode allégé, le décor n'est animé qu'une image sur trois
+    this.frame = (this.frame || 0) + 1;
+    const skipDecor = this.lite && this.frame % 3 !== 0;
+    for (const f of this.animated) { if (skipDecor && f.decor) continue; f(t, skipDecor ? dt : dt * (this.lite ? 3 : 1)); }
     this.updateDots(t, dt);
   }
 }

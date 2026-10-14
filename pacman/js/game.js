@@ -20,26 +20,31 @@ export class Game {
   constructor(canvas) {
     this.canvas = canvas;
     this.isTouch = matchMedia('(pointer: coarse)').matches;
-    const dpr = Math.min(window.devicePixelRatio || 1, this.isTouch ? 2 : 2);
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    // WebView d'application / page intégrée (iframe) : profil allégé d'office
+    const ua = navigator.userAgent || '';
+    this.isEmbedded = /\bwv\b/.test(ua) || (/iPhone|iPad|iPod/.test(ua) && !/Safari\//.test(ua)) || window.self !== window.top || matchMedia('(display-mode: standalone)').matches;
+    const dpr = Math.min(window.devicePixelRatio || 1, this.isEmbedded ? 1.25 : this.isTouch ? 1.5 : 2);
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: !this.isEmbedded, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(dpr);
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.enabled = !this.isEmbedded;
+    this.renderer.shadowMap.type = this.isTouch ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.4;
     // ?q=low force la qualité réduite (vieux mobiles) ; sinon adaptation automatique
     const q = new URLSearchParams(location.search).get('q');
-    const low = q === 'low';
+    const low = q === 'low' || (this.isEmbedded && q !== 'high');
     this.quality = {
       shadows: !low,
+      leafShadows: !low && !this.isTouch,
       shadowSize: this.isTouch ? 1024 : 2048,
-      leaves: low ? 50 : this.isTouch ? 90 : 150,
-      fireflies: low ? 30 : this.isTouch ? 50 : 90,
+      leaves: low ? 45 : this.isTouch ? 80 : 150,
+      fireflies: low ? 25 : this.isTouch ? 45 : 90,
       torchLights: low ? 1 : this.isTouch ? 2 : 4,
-      flowers: low ? 25 : this.isTouch ? 40 : 60,
-      fallingLeaves: low ? 10 : this.isTouch ? 18 : 30,
+      flowers: low ? 20 : this.isTouch ? 36 : 60,
+      fallingLeaves: low ? 8 : this.isTouch ? 16 : 30,
     };
-    if (low) { this.renderer.setPixelRatio(1); this.renderer.shadowMap.enabled = false; this.lowQualityApplied = true; }
+    this.qualityStep = 0;
+    if (low) { this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25)); this.renderer.shadowMap.enabled = false; this.qualityStep = 1; }
     this.ui = new UI(PARTNERS);
     this.audio = new AudioFX();
     this.input = new Input(document.getElementById('app'), document.getElementById('joystick'));
@@ -234,20 +239,27 @@ export class Game {
     this.renderer.render(this.scene, this.rig.camera);
   }
 
+  /** Baisse automatique de la qualité si le jeu rame (2 paliers), mesurée sur ~1 s de jeu */
   _adaptQuality(raw) {
-    if (this.lowQualityApplied) return;
+    if (this.qualityStep >= 2 || this.state !== 'playing') return;
     this.frameTimes.push(raw);
-    if (this.frameTimes.length < 150) return;
-    const avg = this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length;
+    if (this.frameTimes.length < 60) return;
+    const sorted = this.frameTimes.slice().sort((a, b) => a - b);
+    const median = sorted[sorted.length >> 1];
     this.frameTimes.length = 0;
-    if (avg > 0.028 && this.state !== 'title') {
-      // trop lent : on baisse la résolution et on coupe les ombres
-      this.lowQualityApplied = true;
+    if (median <= 0.021) return; // ~48 fps ou mieux : on garde
+    this.qualityStep++;
+    if (this.qualityStep === 1) {
+      // palier 1 : résolution réduite, ombres coupées
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
       this.renderer.shadowMap.enabled = false;
       this.world.sun.castShadow = false;
-      this._resize();
+    } else {
+      // palier 2 : résolution native, décor animé allégé
+      this.renderer.setPixelRatio(1);
+      this.world.setLite(true);
     }
+    this._resize();
   }
 
   // ------------------------------------------------------------ SIMULATION

@@ -70,6 +70,7 @@ export class Pacman extends Mover {
     super(maze);
     this.theme = theme;
     this.want = DIRS.none;
+    this.nextWant = DIRS.none; // virage mémorisé pendant qu'un premier virage attend son croisement
     this.speed = 7;
     this.mouth = 0;        // 0 fermé .. 1 ouvert
     this.mouthT = 0;
@@ -129,7 +130,7 @@ export class Pacman extends Mover {
 
   reset(cell) {
     this.setCell(cell.c, cell.r);
-    this.dir = DIRS.none; this.want = DIRS.none;
+    this.dir = DIRS.none; this.want = DIRS.none; this.nextWant = DIRS.none;
     this.dead = false; this.deathT = 0; this.mouth = 0; this.mouthT = 0;
     this.yaw = this.targetYaw = Math.PI; // regarde à gauche
     this.body.rotation.set(0, 0, 0);
@@ -140,7 +141,33 @@ export class Pacman extends Mover {
     this.syncMesh();
   }
 
-  setWant(dir) { this.want = dir; }
+  /** Direction demandée. Si un virage est déjà en attente et imminent, le nouveau est mis en file. */
+  setWant(dir) {
+    if (dir === DIRS.none) return;
+    if (this.want !== DIRS.none && this.want !== dir && this.want !== this.dir && this._turnSoon(this.want)) {
+      this.nextWant = dir;
+      return;
+    }
+    this.want = dir;
+    this.nextWant = DIRS.none;
+  }
+
+  /** Le virage `d` est-il possible dans les 2 prochaines cases ? */
+  _turnSoon(d) {
+    const cx = Math.round(this.x), cz = Math.round(this.z);
+    if (this.dir === DIRS.none) return this.maze.isOpen(cx + d.x, cz + d.z); // à l'arrêt : le 1er ordre part dès la prochaine image
+    for (let k = 0; k <= 2; k++) {
+      const c = cx + this.dir.x * k, r = cz + this.dir.z * k;
+      if (!this.maze.isOpen(c, r)) break;
+      if (this.maze.isOpen(c + d.x, r + d.z)) return true;
+    }
+    return false;
+  }
+
+  _consumeWant() {
+    this.want = this.nextWant;
+    this.nextWant = DIRS.none;
+  }
 
   update(dt, speed) {
     if (this.dead) { this._deathAnim(dt); return; }
@@ -150,6 +177,7 @@ export class Pacman extends Mover {
     // inversion immédiate
     if (this.want !== DIRS.none && this.dir !== DIRS.none && this.want === opposite(this.dir)) {
       this.dir = this.want;
+      this._consumeWant();
     }
     // virage anticipé (cornering) : si la direction voulue est perpendiculaire et ouverte depuis la case la plus proche
     if (this.want !== DIRS.none && this.want !== this.dir && !this.atCenter && this.dir !== DIRS.none) {
@@ -159,12 +187,13 @@ export class Pacman extends Mover {
         this.visX += this.x - cx; this.visZ += this.z - cz;
         this.x = cx; this.z = cz;
         this.dir = this.want;
+        this._consumeWant();
       }
     }
 
     const before = this.dir;
     this.advance(speed * dt, (cx, cz) => {
-      if (this.want !== DIRS.none && open(cx + this.want.x, cz + this.want.z)) this.dir = this.want;
+      if (this.want !== DIRS.none && open(cx + this.want.x, cz + this.want.z)) { if (this.dir !== this.want) { this.dir = this.want; this._consumeWant(); } }
       else if (this.dir !== DIRS.none && !open(cx + this.dir.x, cz + this.dir.z)) this.dir = DIRS.none;
     });
     this.moving = this.dir !== DIRS.none;
