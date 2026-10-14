@@ -32,6 +32,7 @@ export const THEMES = {
     wall: { color: 0x8da27e, moss: 0x7ed348, glow: 0x5dffd9, glowIntensity: 1.0 },
     floor: { path: 0x4a5c80, stone: 0x1b2230, carve: 0xffd27a, pathEdge: 0x6d82ad },
     dot: 0xffcf4d,
+    dotStyle: 'pearl',          // 'pearl' (perles dorées lumineuses) ou 'arrow' (flèches tatouage)
     ground: 0x174a20,
     torch: { color: 0xffa040, intensity: 14, distance: 11 },
     firefly: 0xe2ff9a,
@@ -46,6 +47,7 @@ export const LEVELS = [
     id: 1,
     name: 'Niveau 1',
     subtitle: 'La jungle de Taapuna',
+    prize: '10 000 F de chèques cadeaux à gagner',
     theme: 'jungle',
     // Manas dans l'ordre de lecture du labyrinthe : haut-gauche, haut-droit, centre-haut, centre-bas, bas-gauche, bas-droit
     mana: ['charcuterie', 'ace', 'amouy', 'guilloux', 'gan', 'taapuna'],

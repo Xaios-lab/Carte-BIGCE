@@ -85,7 +85,8 @@ export class Pacman extends Mover {
 
   _buildMesh() {
     const g = new THREE.Group();
-    const bodyMat = new THREE.MeshStandardMaterial({ color: this.theme.pacman.body, roughness: 0.42, metalness: 0.05, emissive: 0x5a3f00, emissiveIntensity: 0.25 });
+    // corps « noix de coco » (visuel promo) : fibres brunes + lueur dorée permanente pour rester lisible
+    const bodyMat = new THREE.MeshStandardMaterial({ map: TEX.coconutTexture(), color: 0xffbe78, roughness: 0.65, metalness: 0.0, emissive: 0x8a5a14, emissiveIntensity: 0.5 });
     const innerMat = new THREE.MeshStandardMaterial({ color: 0x5a1a12, roughness: 0.8 });
     const R = 0.44;
     const mkJaw = (top) => {
@@ -100,12 +101,20 @@ export class Pacman extends Mover {
     this.top = mkJaw(true);
     this.bottom = mkJaw(false);
     g.add(this.top, this.bottom);
-    // yeux (sur la mâchoire supérieure)
-    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3 });
+    // yeux cartoon (blanc + pupille + sourcil), sur la mâchoire supérieure
+    const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3, emissive: 0x333333 });
+    const pupilMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3 });
+    const browMat = new THREE.MeshStandardMaterial({ color: 0x2a1608, roughness: 0.8 });
     for (const s of [-1, 1]) {
-      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.055, 12, 12), eyeMat);
-      eye.position.set(0.17, 0.27, s * 0.3);
-      this.top.add(eye);
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.095, 14, 12), whiteMat);
+      eye.position.set(0.16, 0.27, s * 0.3);
+      eye.scale.set(0.8, 1.1, 0.9);
+      const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 10), pupilMat);
+      pupil.position.set(0.23, 0.28, s * 0.3);
+      const brow = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.035, 0.05), browMat);
+      brow.position.set(0.17, 0.4, s * 0.3);
+      brow.rotation.z = 0.35;
+      this.top.add(eye, pupil, brow);
     }
     // fleur de tiaré
     const flower = new THREE.Group();
@@ -127,7 +136,8 @@ export class Pacman extends Mover {
     // aura (mode Mana)
     this.aura = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.glowTexture('rgba(255,236,140,1)', 'rgba(255,200,60,0)'), color: 0xffe07a, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
     this.aura.scale.set(2.2, 2.2, 1);
-    this.aura.visible = false;
+    this.aura.visible = true;
+    this.aura.material.opacity = 0.35;
     g.add(this.aura);
 
     this.body = new THREE.Group();
@@ -147,7 +157,6 @@ export class Pacman extends Mover {
     this.body.scale.set(1, 1, 1);
     this.inner.rotation.set(0, 0, 0);
     this.powered = false;
-    this.aura.visible = false;
     this.lastCell = null;
     this.syncMesh();
   }
@@ -216,10 +225,13 @@ export class Pacman extends Mover {
     this.bottom.rotation.z = -a;
     // petit rebond en marchant
     this.mesh.position.y = 0.46 + (this.moving ? Math.abs(Math.sin(this.mouthT * 0.5)) * 0.03 : 0);
-    this.aura.visible = this.powered;
     if (this.powered) {
-      const k = 2.0 + 0.3 * Math.sin(performance.now() * 0.012);
+      const k = 2.3 + 0.35 * Math.sin(performance.now() * 0.012);
       this.aura.scale.set(k, k, 1);
+      this.aura.material.opacity = 0.75;
+    } else {
+      this.aura.scale.set(1.8, 1.8, 1);
+      this.aura.material.opacity = 0.45;
     }
   }
 }
@@ -322,6 +334,15 @@ export class Ghost extends Mover {
       this.eyes.add(eye, pupil);
       this.pupils.push(pupil);
     }
+    this.brows = [];
+    const browMat = new THREE.MeshStandardMaterial({ color: 0x101a3a, roughness: 0.6 });
+    for (const s of [-1, 1]) {
+      const brow = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.04, 0.05), browMat);
+      brow.position.set(s * 0.16, 0.7, 0.32);
+      brow.rotation.z = -s * 0.45;
+      this.eyes.add(brow);
+      this.brows.push(brow);
+    }
     g.add(this.eyes);
     // halo
     this.halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.glowTexture('rgba(255,255,255,1)', 'rgba(255,255,255,0)'), color: this.baseColor, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
@@ -369,6 +390,7 @@ export class Ghost extends Mover {
   applyLook() {
     const eyesOnly = this.state === 'eyes' || this.state === 'entering';
     this.bodyGroup.visible = !eyesOnly;
+    for (const b of this.brows) b.visible = !eyesOnly && !this.frightened && !this.frozen;
     this.halo.visible = !eyesOnly;
     if (this.frozen) {
       this.bodyMat.color.copy(FROZEN_COLOR); this.bodyMat.emissive.copy(FROZEN_EMISSIVE);

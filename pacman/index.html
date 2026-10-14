@@ -48,6 +48,7 @@
     </footer>
 
     <div id="msg" class="msg"></div>
+    <div id="hint"><div class="finger"></div><span>Glisse ton doigt pour diriger</span></div>
     <div id="fx"></div>
     <div id="joystick"><div class="knob"></div></div>
 
@@ -72,6 +73,7 @@
           <div class="brand"><small>présente</small></div>
           <h1>PAC‑MANA</h1>
           <p class="sub" id="title-level">Niveau 1</p>
+          <p class="prize" id="title-prize" hidden></p>
           <button id="btn-play" class="btn big">JOUER</button>
           <p class="help">
             <span class="touch-only">Glisse ton doigt n'importe où sur l'écran pour diriger Pac‑Man.</span>
@@ -102,6 +104,7 @@
       <section id="screen-over" class="screen">
         <div class="panel">
           <h2>LES ESPRITS<br>ONT GAGNÉ…</h2>
+          <p class="record" hidden>🏆 Nouveau record !</p>
           <p class="score-line">Score <b id="over-score">0</b></p>
           <button id="btn-retry" class="btn big">REJOUER</button>
           <button class="btn secondary btn-draw">PARTICIPER AU TIRAGE</button>
@@ -113,6 +116,7 @@
         <div class="panel">
           <div class="brand">Māuruuru !</div>
           <h2>NIVEAU 1<br>TERMINÉ</h2>
+          <p class="record" hidden>🏆 Nouveau record !</p>
           <p class="score-line">Score <b id="win-score">0</b></p>
           <button id="btn-next" class="btn big">REJOUER</button>
           <button class="btn secondary btn-draw">PARTICIPER AU TIRAGE</button>

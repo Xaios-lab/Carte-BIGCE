@@ -53,6 +53,15 @@ export class UI {
   }
   resetPartners() { Object.keys(this.partnerEls || {}).forEach((id) => this.setPartnerState(id, false)); }
 
+  setRecord(screen, on) {
+    const el = document.querySelector(`#screen-${screen} .record`);
+    if (el) el.hidden = !on;
+  }
+  hint(on) {
+    const el = document.getElementById('hint');
+    if (el) el.classList.toggle('on', on);
+  }
+
   showScreen(id) {
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('on', s.id === id));
     this.el.screens.classList.toggle('on', !!id);

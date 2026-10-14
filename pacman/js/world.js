@@ -211,8 +211,11 @@ export class World {
     shell.closePath();
     const shellGeo = new THREE.ShapeGeometry(shell); shellGeo.rotateX(-Math.PI / 2);
 
-    const mk = (geo, color, count) => {
-      const mat = new THREE.MeshBasicMaterial({ color, toneMapped: false, side: THREE.DoubleSide });
+    // perles dorées lumineuses (style visuel promo)
+    const pearlGeo = new THREE.SphereGeometry(0.17, 14, 10);
+    const pearlMat = new THREE.MeshStandardMaterial({ color: 0xffd45a, emissive: 0xd98a00, emissiveIntensity: 0.9, roughness: 0.25, metalness: 0.5 });
+    const mk = (geo, color, count, mat) => {
+      mat = mat || new THREE.MeshBasicMaterial({ color, toneMapped: false, side: THREE.DoubleSide });
       const im = new THREE.InstancedMesh(geo, mat, Math.max(1, count));
       im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       im.count = count;
@@ -221,8 +224,9 @@ export class World {
     };
     const kinds = { arrow: [], star: [], shell: [] };
     maze.dots.forEach((d) => kinds[d.kind].push(d));
+    this.pearlStyle = theme.dotStyle === 'pearl';
     this.dotMeshes = {
-      arrow: mk(arrowGeo, theme.dot, kinds.arrow.length),
+      arrow: this.pearlStyle ? mk(pearlGeo, theme.dot, kinds.arrow.length, pearlMat) : mk(arrowGeo, theme.dot, kinds.arrow.length),
       star: mk(starGeo, 0xff7a3d, kinds.star.length),
       shell: mk(shellGeo, 0xffd9e4, kinds.shell.length),
     };
@@ -271,14 +275,14 @@ export class World {
         if (k <= 0) { this.dotState[i] = -1; k = 0; }
       } else if (st < 0) k = 0;
       const special = d.kind !== 'arrow';
-      const bob = 0.05 + 0.025 * Math.sin(t * 2.2 + this.dotPhase[i]);
+      const bob = (this.pearlStyle && !special ? 0.26 : 0.05) + 0.025 * Math.sin(t * 2.2 + this.dotPhase[i]);
       p.set(w.x, bob, w.z);
       q.setFromAxisAngle(up, this.dotRot[i] + (special ? Math.sin(t * 1.5 + this.dotPhase[i]) * 0.3 : 0));
       const ks = special ? k * (1 + 0.08 * Math.sin(t * 4 + this.dotPhase[i])) : k;
       sc.set(ks, ks, ks);
       m.compose(p, q, sc);
       this.dotMeshes[d.kind].setMatrixAt(this.dotLocal[i], m);
-      const hs = k * (special ? 1.4 : 0.9 + 0.15 * Math.sin(t * 3 + this.dotPhase[i]));
+      const hs = k * (special ? 1.4 : (this.pearlStyle ? 1.1 : 0.9) + 0.15 * Math.sin(t * 3 + this.dotPhase[i]));
       sc.set(hs, 1, hs);
       p.y = 0.02;
       m.compose(p, q, sc);
@@ -311,8 +315,9 @@ export class World {
       back.castShadow = true;
       const logo = new THREE.Mesh(new THREE.PlaneGeometry(R * 1.96, R * 1.96), new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.2, toneMapped: false }));
       logo.position.z = 0.055;
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(R, 0.06, 10, 56), goldMat);
       const badge = new THREE.Group();
-      badge.add(back, logo);
+      badge.add(back, logo, rim);
       // la caméra plonge à ~63° : la normale du médaillon pointe vers elle => vu de face, cercle parfait, logo à l'endroit
       badge.rotation.x = -THREE.MathUtils.degToRad(63);
       const spin = new THREE.Group(); // flottement ; le flip ne sert qu'à l'apparition

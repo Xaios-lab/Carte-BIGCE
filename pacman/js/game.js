@@ -14,6 +14,7 @@ import { loadImageTexture, glowTexture } from './textures.js';
 
 const SCORE = { dot: 10, mana: 50, ghost: [200, 400, 800, 1600], extraLifeAt: 10000 };
 const DRAW_URL = 'https://formulaire.big-ce.com/pacmana'; // formulaire du tirage au sort
+const buzz = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch { /* indisponible */ } };
 
 export class Game {
   constructor(canvas) {
@@ -92,6 +93,8 @@ export class Game {
     this.ui.setScore(0);
     this.ui.setSound(!this.audio.muted);
     if (this.ui.el.levelName) this.ui.el.levelName.textContent = `${level.name} · ${level.subtitle}`;
+    const prize = document.getElementById('title-prize');
+    if (prize) { prize.textContent = level.prize || ''; prize.hidden = !level.prize; }
 
     window.addEventListener('resize', () => this._resize());
     this._resize();
@@ -165,6 +168,7 @@ export class Game {
   // ------------------------------------------------------------ PARTIE
   newGame() {
     this.score = 0; this.lives = 3; this.nextExtraLife = SCORE.extraLifeAt;
+    this.startHiscore = this.hiscore;
     this.ui.setScore(0); this.ui.setLives(this.lives);
     this.world.resetDots(); this.world.resetManas(); this.world.setWallFlash(0);
     this.ui.resetPartners();
@@ -185,6 +189,8 @@ export class Game {
     this.timeScale = 1;
     this.rig.target.set(0, 0, 0);
     this.ui.message(first ? 'PRÊT ?' : 'ENCORE !', 'ready');
+    // aide au tout premier lancement sur tactile : "glisse pour diriger"
+    if (first && this.isTouch && !lsGet('pacmana.hintSeen')) { this.ui.hint(true); lsSet('pacmana.hintSeen', '1'); this.hintShown = true; }
     if (first) { this.audio.start(); this.audio.playMusic(); }
     this.audio.setLoop(null);
     this.clock.getDelta();
@@ -201,6 +207,8 @@ export class Game {
     if (this.state === 'ready') {
       this.readyTimer -= raw;
       if (this.readyTimer <= 0) { this.state = 'playing'; this.ui.message(null); }
+    }
+    if (this.hintShown && this.state === 'playing' && this.pac.moving) { this.ui.hint(false); this.hintShown = false;
     } else if (this.state === 'playing') {
       this._step(dt);
     } else if (this.state === 'dying') {
@@ -380,6 +388,7 @@ export class Game {
     this.ui.manaBurst(mana.partner, { avoid: this._pacScreen() });
     this.ui.flash('gold');
     this.audio.eatMana();
+    buzz(50);
     this.timeScale = 0.25;      // ralenti dramatique
     this.rig.zoomBoost = 0.08;  // léger zoom
     this.rig.shake = 0.25;
@@ -394,6 +403,7 @@ export class Game {
     this._addScore(pts);
     g.eaten();
     this.audio.eatGhost();
+    buzz(30);
     this.ui.popup(String(pts), g.mesh.position, 'ghost');
     this._sparks(g.mesh.position.clone().add(new THREE.Vector3(0, 0.4, 0)), 18);
     this.timeScale = 0.35;
@@ -446,6 +456,7 @@ export class Game {
     this.dieTimer = 1.9;
     this.audio.setLoop(null);
     this.audio.death();
+    buzz([80, 40, 120]);
     this.rig.shake = 0.5;
     this.ui.flash('red');
     this.ghosts.forEach((g) => { g.mesh.visible = false; });
@@ -459,6 +470,7 @@ export class Game {
       this.audio.setLoop(null);
       this.audio.stopMusic();
       document.getElementById('over-score').textContent = String(this.score);
+      this.ui.setRecord('over', this.score > 0 && this.score >= this.hiscore && this.hiscore > this.startHiscore);
       this.ui.showScreen('screen-over');
       this.ui.message(null);
     } else {
@@ -482,6 +494,7 @@ export class Game {
     this.world.setWallFlash(0);
     this.ui.message(null);
     document.getElementById('win-score').textContent = String(this.score);
+    this.ui.setRecord('win', this.score >= this.hiscore && this.hiscore > this.startHiscore);
     this.ui.showScreen('screen-win');
   }
 

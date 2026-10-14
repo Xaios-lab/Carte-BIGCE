@@ -81,6 +81,13 @@ button.icon:active { transform: scale(.92); }
 .msg.win { color: #fff; animation: pulse .5s ease-in-out infinite; }
 @keyframes pulse { 50% { transform: translate(-50%, -50%) scale(1.06); } }
 
+/* ------------------------------------------------------------ Aide au premier lancement */
+#hint { position: absolute; left: 50%; top: 62%; transform: translateX(-50%); z-index: 6; display: flex; flex-direction: column; align-items: center; gap: 10px; opacity: 0; pointer-events: none; transition: opacity .3s; }
+#hint.on { opacity: 1; }
+#hint span { font-size: 14px; font-weight: 800; letter-spacing: .06em; color: var(--cream); text-shadow: 0 2px 6px #000; background: rgba(2, 12, 14, .55); padding: 6px 14px; border-radius: 999px; }
+#hint .finger { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--cream); box-shadow: 0 0 14px rgba(255, 220, 120, .8); animation: finger 1.6s ease-in-out infinite; }
+@keyframes finger { 0% { transform: translateX(-40px); opacity: .4; } 50% { transform: translateX(40px); opacity: 1; } 100% { transform: translateX(-40px); opacity: .4; } }
+
 /* ------------------------------------------------------------ Joystick flottant */
 #joystick { position: absolute; z-index: 4; width: 84px; height: 84px; margin: -42px 0 0 -42px; border-radius: 50%; border: 2px solid rgba(255, 230, 163, .45); background: rgba(5, 25, 28, .25); opacity: 0; pointer-events: none; transition: opacity .15s; display: grid; place-items: center; }
 #joystick.on { opacity: 1; }
@@ -136,6 +143,15 @@ button.icon:active { transform: scale(.92); }
 .mana-burst .label span { display: block; font-size: 13px; color: var(--teal); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; margin-top: 4px; text-shadow: 0 0 10px rgba(122, 245, 216, .8); }
 @keyframes label { 0%, 6% { opacity: 0; transform: translateX(-50%) translateY(20px); } 16% { opacity: 1; transform: translateX(-50%) translateY(0); } 88% { opacity: 1; } 100% { opacity: 0; } }
 
+/* écran titre : panneau compact et plus transparent pour laisser voir le visuel promo */
+#screen-title { align-items: flex-end; padding-bottom: calc(18px + var(--sab)); }
+#screen-title .panel { background: rgba(4, 22, 25, .6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); gap: 10px; padding: 18px 20px 20px; }
+#screen-title .brand-logo { width: 64px; height: 64px; margin-bottom: -4px; }
+#screen-title h1 { font-size: clamp(40px, 10vw, 64px); }
+#screen-title .help { font-size: 12px; margin-top: 2px; }
+.screen .splash { background-position: center 18%; }
+@media (min-aspect-ratio: 4/3) { #screen-title { align-items: center; padding-bottom: 16px; } }
+
 /* ------------------------------------------------------------ Lightbox (tirage au sort) */
 #lightbox { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: calc(10px + var(--sat)) 10px calc(10px + var(--sab)); background: rgba(2, 12, 14, .7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: lbIn .25s ease-out; }
 #lightbox[hidden] { display: none; }
@@ -166,6 +182,8 @@ button.icon:active { transform: scale(.92); }
 h1 { font-family: var(--font-title); font-size: clamp(52px, 14vw, 96px); margin: 0; line-height: 1; color: var(--cream); text-shadow: 0 0 30px rgba(255, 210, 90, .75), 0 4px 0 #3a2300, 0 10px 30px rgba(0, 0, 0, .7); letter-spacing: .04em; }
 h2 { font-family: var(--font-title); font-size: clamp(34px, 9vw, 58px); margin: 0; line-height: 1.05; color: var(--cream); text-shadow: 0 0 22px rgba(255, 210, 90, .7), 0 3px 0 #3a2300; }
 .sub { margin: 0 0 6px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: rgba(255, 255, 255, .8); font-size: 13px; }
+.prize { margin: -4px 0 4px; padding: 6px 16px; border-radius: 999px; font-family: var(--font-title); font-size: clamp(15px, 4vw, 20px); letter-spacing: .06em; color: #2a1a00; background: linear-gradient(180deg, #ffe08a, #e9a93a); box-shadow: 0 0 18px rgba(255, 210, 90, .5); }
+.record { margin: 0; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--gold-2); text-shadow: 0 0 12px rgba(255, 210, 90, .8); animation: pulse 1s ease-in-out infinite; }
 .score-line { font-size: 18px; font-weight: 800; color: rgba(255, 255, 255, .8); margin: 0 0 6px; }
 .score-line b { font-family: var(--font-title); font-size: 34px; color: var(--cream); margin-left: 8px; }
 .help { font-size: 13px; line-height: 1.5; color: rgba(255, 255, 255, .75); margin: 8px 0 0; max-width: 38ch; }

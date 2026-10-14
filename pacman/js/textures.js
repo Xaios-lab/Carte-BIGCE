@@ -221,6 +221,28 @@ export function flowerTexture() {
   return t;
 }
 
+/** Noix de coco : fibres brunes (corps de Pac-Man, façon visuel promo) */
+export function coconutTexture() {
+  const W = 512, H = 256;
+  const c = canvas(W, H), ctx = c.getContext('2d');
+  const rand = rng(77);
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#a8672e'); g.addColorStop(0.5, '#8d4f22'); g.addColorStop(1, '#6a3715');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // fibres
+  for (let i = 0; i < 900; i++) {
+    const x = rand() * W, y = rand() * H, len = 8 + rand() * 30;
+    ctx.strokeStyle = rand() > 0.5 ? `rgba(60,30,10,${0.25 + rand() * 0.4})` : `rgba(220,160,90,${0.15 + rand() * 0.3})`;
+    ctx.lineWidth = 1 + rand() * 1.5;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + len * (rand() - 0.5), y + len * 0.4 * (rand() - 0.5)); ctx.stroke();
+  }
+  speckle(ctx, W, H, rand, 300, 0x000000, 0.25, 2, 6);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
 /** Halo radial doux (sprites, lucioles) */
 export function glowTexture(inner = 'rgba(255,255,255,1)', outer = 'rgba(255,255,255,0)') {
   const S = 128;
