@@ -99,6 +99,8 @@ export class Game {
     this.ui.setScore(0);
     this.ui.setSound(!this.audio.muted);
     if (this.ui.el.levelName) this.ui.el.levelName.textContent = `${level.name} · ${level.subtitle}`;
+    // logos de l'écran titre : mêmes images que les Manas (aucune donnée en double dans le fichier)
+    for (const img of document.querySelectorAll('img[data-partner]')) { const pr = PARTNERS[img.dataset.partner]; if (pr) img.src = pr.logo; }
     const prize = document.getElementById('title-prize');
     if (prize) { prize.textContent = level.prize || ''; prize.hidden = !level.prize; }
 
@@ -107,6 +109,8 @@ export class Game {
     this.state = 'title';
     this.ui.showScreen('screen-title');
     this.renderer.setAnimationLoop(() => this._frame());
+    const loader = document.getElementById('loader');
+    if (loader) { loader.classList.add('off'); setTimeout(() => loader.remove(), 500); }
   }
 
   /** Zones réservées au HUD pour le cadrage caméra */
@@ -172,6 +176,15 @@ export class Game {
     document.querySelector('.lb-loading').hidden = true;
     document.getElementById('lb-frame').hidden = true;
     const sp = document.getElementById('lb-sponsors');
+    // images différées (version tout-en-un : données en fin de fichier) ou dossier sponsors/logos/
+    let data = null;
+    const el = document.getElementById('sponsors-data');
+    if (el) { try { data = JSON.parse(el.textContent); } catch { data = null; } }
+    for (const img of sp.querySelectorAll('img[data-file]')) {
+      if (img.src) continue;
+      const f = img.dataset.file;
+      img.src = data && data[f] ? data[f] : 'sponsors/logos/' + f;
+    }
     sp.hidden = false; sp.scrollTop = 0;
     lb.hidden = false;
     document.getElementById('lb-close').focus();

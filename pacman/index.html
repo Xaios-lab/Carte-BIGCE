@@ -11,12 +11,33 @@
   <meta name="description" content="Pac-Man 3D façon jungle polynésienne, édition BIG CE avec les Manas des partenaires Charcuterie du Pacifique, ACE, Amouy, Guilloux, GAN et Taapuna La Boutique.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Piedra&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Piedra&family=Nunito:wght@600;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="assets/bigce.png">
+  <link rel="icon" href="assets/bigce-small.png">
   <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
 </head>
 <body>
+  <!-- Écran de chargement : affiché dès les premiers octets, retiré quand le jeu est prêt -->
+  <style>
+    #loader { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: radial-gradient(900px 500px at 50% 30%, #0f4a3a 0%, #07232a 60%, #04161a 100%); color: #ffe6a3; font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif; transition: opacity .4s; }
+    #loader.off { opacity: 0; pointer-events: none; }
+    #loader img { width: 96px; height: 96px; animation: ld-float 2.4s ease-in-out infinite; filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .6)); }
+    #loader .t { font-family: 'Piedra', Impact, 'Arial Black', sans-serif; font-size: 34px; letter-spacing: .06em; text-shadow: 0 0 22px rgba(255, 210, 90, .6), 0 3px 0 #3a2300; }
+    #loader .s { font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: rgba(255, 230, 163, .75); }
+    #loader .bar { width: min(60vw, 240px); height: 8px; border-radius: 999px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+    #loader .bar i { display: block; width: 40%; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #ffe08a, #e9a93a); animation: ld-bar 1.3s ease-in-out infinite; }
+    #loader .pac { width: 26px; height: 26px; border-radius: 50%; background: conic-gradient(from 35deg, transparent 0 70deg, #ffd43b 70deg 360deg); animation: ld-chomp .5s steps(2) infinite; box-shadow: 0 0 12px rgba(255, 212, 59, .7); }
+    @keyframes ld-bar { 0% { transform: translateX(-120%); } 100% { transform: translateX(300%); } }
+    @keyframes ld-float { 50% { transform: translateY(-6px); } }
+    @keyframes ld-chomp { 0% { background: conic-gradient(from 35deg, transparent 0 70deg, #ffd43b 70deg 360deg); } 100% { background: conic-gradient(from 10deg, transparent 0 20deg, #ffd43b 20deg 360deg); } }
+  </style>
+  <div id="loader" role="status" aria-live="polite">
+    <img src="assets/bigce-small.png" alt="BIG CE" width="96" height="96">
+    <div class="t">PAC‑MANA</div>
+    <div class="pac"></div>
+    <div class="bar"><i></i></div>
+    <div class="s" id="loader-text">Chargement du jeu…</div>
+  </div>
   <div id="app">
     <canvas id="gl"></canvas>
 
@@ -68,60 +89,60 @@
             <p class="sp-intro">Merci aux partenaires qui soutiennent le Pac‑Mana et la Carte BIG CE 2026. Grâce à eux, <b>10 000 F de chèques cadeaux</b> sont à gagner !</p>
             <span class="sp-count">54 partenaires</span>
             <div class="sp-grid">
-            <figure><img src="sponsors/logos/01-synergie-equipement.webp" alt="Synergie Équipement" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/02-taapuna-la-boutique.webp" alt="Taapuna La Boutique" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/03-amouy.webp" alt="Amouy" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/04-ace-sin-tung-hing.webp" alt="ACE Sin Tung Hing" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/05-guilloux.webp" alt="Guilloux" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/06-gan-outre-mer.webp" alt="GAN Outre-Mer" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/07-pacific-films.webp" alt="Pacific Films" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/08-optic-2000.webp" alt="Optic 2000" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/09-olympians-sport.webp" alt="Olympians Sport" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/10-monoi-tiki-tahiti.webp" alt="Monoï Tiki Tahiti" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/11-avis.webp" alt="Avis" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/12-jimmy-restaurant.webp" alt="Jimmy Restaurant" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/13-l-instant-present.webp" alt="L'Instant Présent" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/14-essor.webp" alt="Essor" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/15-equip-auto.webp" alt="Equip Auto" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/16-tauati-ferry.webp" alt="Tauati Ferry" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/17-manava-beach-resort-spa.webp" alt="Manava Beach Resort &amp; Spa" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/18-polynesie-pneus.webp" alt="Polynésie Pneus" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/19-fitc.webp" alt="FITC" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/20-auto-express.webp" alt="Auto Express" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/21-apetahi-express.webp" alt="Apetahi Express" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/22-wakame-sushi-grill.webp" alt="Wakame Sushi &amp; Grill" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/23-groupe-sth-marine.webp" alt="Groupe STH Marine" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/24-pacific-imports.webp" alt="Pacific Imports" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/25-renault-rent.webp" alt="Renault Rent" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/26-meherio-tahitian-bistro.webp" alt="Meherio Tahitian Bistro" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/27-huahine-import.webp" alt="Huahine Import" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/28-urban-cafe.webp" alt="Urban Café" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/29-punaruu-marine.webp" alt="Punaruu Marine" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/30-cabinet-levy.webp" alt="Cabinet Levy" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/31-hinano-life.webp" alt="Hinano Life" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/32-natureland.webp" alt="Natureland" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/33-tahitian-indoor-sports.webp" alt="Tahitian Indoor Sports" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/34-dream-yacht-worldwide.webp" alt="Dream Yacht Worldwide" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/35-alarme.webp" alt="Alarme" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/36-tip-top.webp" alt="Tip Top" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/37-sodimec.webp" alt="Sodimec" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/38-hotel-hibiscus.webp" alt="Hôtel Hibiscus" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/39-vaeara-i.webp" alt="Vaeara'i" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/40-vaima-perles.webp" alt="Vaima Perles" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/41-spm.webp" alt="SPM" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/42-tahitian-move.webp" alt="Tahitian Move" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/43-agritech.webp" alt="Agritech" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/44-argos-polynesie.webp" alt="Argos Polynésie" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/45-ani-malice.webp" alt="Ani'Malice" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/46-herve-materiaux.webp" alt="Hervé Matériaux" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/47-l-appro.webp" alt="L'Appro" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/48-fare-de-la-lunette.webp" alt="Fare de la Lunette" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/49-croq-in.webp" alt="Croq'In" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/50-faa-a-materiaux.webp" alt="Faa'a Matériaux" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/51-yy.webp" alt="YY" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/52-optimum-vision.webp" alt="Optimum Vision" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/53-tipaniers-moorea.webp" alt="Tipaniers Moorea" loading="lazy" width="300" height="150"></figure>
-            <figure><img src="sponsors/logos/54-a-l-eau-donuts.webp" alt="À l'eau Donuts" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="01-synergie-equipement.webp" alt="Synergie Équipement" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="02-taapuna-la-boutique.webp" alt="Taapuna La Boutique" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="03-amouy.webp" alt="Amouy" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="04-ace-sin-tung-hing.webp" alt="ACE Sin Tung Hing" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="05-guilloux.webp" alt="Guilloux" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="06-gan-outre-mer.webp" alt="GAN Outre-Mer" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="07-pacific-films.webp" alt="Pacific Films" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="08-optic-2000.webp" alt="Optic 2000" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="09-olympians-sport.webp" alt="Olympians Sport" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="10-monoi-tiki-tahiti.webp" alt="Monoï Tiki Tahiti" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="11-avis.webp" alt="Avis" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="12-jimmy-restaurant.webp" alt="Jimmy Restaurant" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="13-l-instant-present.webp" alt="L'Instant Présent" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="14-essor.webp" alt="Essor" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="15-equip-auto.webp" alt="Equip Auto" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="16-tauati-ferry.webp" alt="Tauati Ferry" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="17-manava-beach-resort-spa.webp" alt="Manava Beach Resort &amp; Spa" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="18-polynesie-pneus.webp" alt="Polynésie Pneus" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="19-fitc.webp" alt="FITC" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="20-auto-express.webp" alt="Auto Express" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="21-apetahi-express.webp" alt="Apetahi Express" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="22-wakame-sushi-grill.webp" alt="Wakame Sushi &amp; Grill" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="23-groupe-sth-marine.webp" alt="Groupe STH Marine" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="24-pacific-imports.webp" alt="Pacific Imports" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="25-renault-rent.webp" alt="Renault Rent" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="26-meherio-tahitian-bistro.webp" alt="Meherio Tahitian Bistro" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="27-huahine-import.webp" alt="Huahine Import" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="28-urban-cafe.webp" alt="Urban Café" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="29-punaruu-marine.webp" alt="Punaruu Marine" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="30-cabinet-levy.webp" alt="Cabinet Levy" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="31-hinano-life.webp" alt="Hinano Life" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="32-natureland.webp" alt="Natureland" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="33-tahitian-indoor-sports.webp" alt="Tahitian Indoor Sports" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="34-dream-yacht-worldwide.webp" alt="Dream Yacht Worldwide" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="35-alarme.webp" alt="Alarme" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="36-tip-top.webp" alt="Tip Top" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="37-sodimec.webp" alt="Sodimec" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="38-hotel-hibiscus.webp" alt="Hôtel Hibiscus" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="39-vaeara-i.webp" alt="Vaeara'i" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="40-vaima-perles.webp" alt="Vaima Perles" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="41-spm.webp" alt="SPM" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="42-tahitian-move.webp" alt="Tahitian Move" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="43-agritech.webp" alt="Agritech" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="44-argos-polynesie.webp" alt="Argos Polynésie" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="45-ani-malice.webp" alt="Ani'Malice" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="46-herve-materiaux.webp" alt="Hervé Matériaux" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="47-l-appro.webp" alt="L'Appro" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="48-fare-de-la-lunette.webp" alt="Fare de la Lunette" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="49-croq-in.webp" alt="Croq'In" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="50-faa-a-materiaux.webp" alt="Faa'a Matériaux" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="51-yy.webp" alt="YY" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="52-optimum-vision.webp" alt="Optimum Vision" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="53-tipaniers-moorea.webp" alt="Tipaniers Moorea" loading="lazy" width="300" height="150"></figure>
+            <figure><img data-file="54-a-l-eau-donuts.webp" alt="À l'eau Donuts" loading="lazy" width="300" height="150"></figure>
             </div>
           </div>
         </div>
@@ -146,12 +167,12 @@
           </p>
           <p class="link-line"><a href="https://www.guide2026.big-ce.com/PacMana/sponsors" target="_blank" rel="noopener">Voir nos partenaires sponsors</a></p>
           <div class="title-partners">
-            <img src="assets/logos/charcuterie.png" alt="Charcuterie du Pacifique">
-            <img src="assets/logos/ace.png" alt="ACE Sin Tung Hing">
-            <img src="assets/logos/amouy.png" alt="Amouy">
-            <img src="assets/logos/guilloux.png" alt="Guilloux">
-            <img src="assets/logos/gan.png" alt="GAN">
-            <img src="assets/logos/taapuna.png" alt="Taapuna La Boutique">
+            <img data-partner="charcuterie" alt="Charcuterie du Pacifique" width="52" height="52">
+            <img data-partner="ace" alt="ACE Sin Tung Hing" width="52" height="52">
+            <img data-partner="amouy" alt="Amouy" width="52" height="52">
+            <img data-partner="guilloux" alt="Guilloux" width="52" height="52">
+            <img data-partner="gan" alt="GAN" width="52" height="52">
+            <img data-partner="taapuna" alt="Taapuna La Boutique" width="52" height="52">
           </div>
         </div>
       </section>

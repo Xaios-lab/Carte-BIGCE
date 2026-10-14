@@ -35,19 +35,31 @@ export class AudioFX {
   // --- musique (fichier) : « Poursuite dans la forêt »
   loadMusic(url) {
     const a = new Audio();
-    a.src = url; a.loop = true; a.preload = 'auto'; a.volume = this.musicVolume; a.muted = this.muted;
+    a.loop = true; a.preload = 'auto'; a.volume = this.musicVolume; a.muted = this.muted;
     this.music = a;
     this.musicPlaying = false;
+    if (url.startsWith('#')) {
+      // version tout-en-un : les données audio arrivent en fin de fichier, on attend qu'elles soient là
+      const id = url.slice(1);
+      const tryLoad = () => {
+        const el = document.getElementById(id);
+        if (el && el.textContent.length > 100) { a.src = el.textContent.trim(); if (this.musicWanted) this.playMusic(); }
+        else setTimeout(tryLoad, 400);
+      };
+      tryLoad();
+    } else a.src = url;
   }
   get musicVolume() { return 0.55; }
   playMusic() {
     if (!this.music) return;
+    this.musicWanted = true;
+    if (!this.music.src) return; // pas encore reçue : démarrera dès réception
     const p = this.music.play();
     this.musicPlaying = true;
     if (p && p.catch) p.catch(() => { this.musicPlaying = false; });
   }
-  pauseMusic() { if (this.music) { this.music.pause(); this.musicPlaying = false; } }
-  stopMusic() { if (this.music) { this.music.pause(); this.music.currentTime = 0; this.musicPlaying = false; } }
+  pauseMusic() { this.musicWanted = false; if (this.music) { this.music.pause(); this.musicPlaying = false; } }
+  stopMusic() { this.musicWanted = false; if (this.music) { this.music.pause(); if (this.music.src) this.music.currentTime = 0; this.musicPlaying = false; } }
   /** Baisse temporaire de la musique (mode Mana) : k dans [0,1] */
   duck(k) { if (this.music) this.music.volume += (this.musicVolume * k - this.music.volume) * 0.1; }
 

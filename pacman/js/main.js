@@ -8,4 +8,6 @@ game.load().catch((err) => {
   const m = document.getElementById('msg');
   m.className = 'msg on';
   m.textContent = 'Erreur de chargement : ' + err.message;
+  const lt = document.getElementById('loader-text');
+  if (lt) lt.textContent = 'Erreur de chargement : ' + err.message;
 });
