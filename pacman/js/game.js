@@ -121,6 +121,7 @@ export class Game {
     document.getElementById('btn-retry').addEventListener('click', () => this.newGame());
     document.getElementById('btn-next').addEventListener('click', () => this.newGame());
     document.getElementById('btn-resume').addEventListener('click', () => this.togglePause());
+    document.getElementById('btn-restart').addEventListener('click', () => { this.audio.init(); this.newGame(); });
     document.getElementById('btn-pause').addEventListener('click', () => this.togglePause());
     document.getElementById('btn-sound').addEventListener('click', () => { this.audio.init(); this.audio.setMuted(!this.audio.muted); this.ui.setSound(!this.audio.muted); });
     document.addEventListener('visibilitychange', () => { if (document.hidden && this.state === 'playing') this.togglePause(); });
