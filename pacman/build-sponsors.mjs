@@ -9,7 +9,7 @@ const dir = path.join(root, 'sponsors');
 const logos = JSON.parse(fs.readFileSync(path.join(dir, 'logos.json'), 'utf8'));
 const dataUri = (p, mime) => `data:${mime};base64,${fs.readFileSync(p).toString('base64')}`;
 const bigce = dataUri(path.join(root, 'assets', 'bigce.png'), 'image/png');
-const GAME_URL = '../';
+const GAME_URL = 'https://www.guide2026.big-ce.com/PacMana/';
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
 const page = (src) => `<!DOCTYPE html>
