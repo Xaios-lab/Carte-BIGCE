@@ -1733,8 +1733,8 @@ class Pacman extends Mover {
 
   _buildMesh() {
     const g = new THREE.Group();
-    // corps « noix de coco » (visuel promo) : fibres brunes + lueur dorée permanente pour rester lisible
-    const bodyMat = new THREE.MeshStandardMaterial({ map: TEX.coconutTexture(), color: 0xffbe78, roughness: 0.65, metalness: 0.0, emissive: 0x8a5a14, emissiveIntensity: 0.5 });
+    // corps jaune classique (la variante « noix de coco » reste disponible : map: TEX.coconutTexture())
+    const bodyMat = new THREE.MeshStandardMaterial({ color: this.theme.pacman.body, roughness: 0.42, metalness: 0.05, emissive: 0x5a3f00, emissiveIntensity: 0.25 });
     const innerMat = new THREE.MeshStandardMaterial({ color: 0x5a1a12, roughness: 0.8 });
     const R = 0.44;
     const mkJaw = (top) => {
@@ -1878,8 +1878,8 @@ class Pacman extends Mover {
       this.aura.scale.set(k, k, 1);
       this.aura.material.opacity = 0.75;
     } else {
-      this.aura.scale.set(1.8, 1.8, 1);
-      this.aura.material.opacity = 0.45;
+      this.aura.scale.set(1.7, 1.7, 1);
+      this.aura.material.opacity = 0.25;
     }
   }
 }
