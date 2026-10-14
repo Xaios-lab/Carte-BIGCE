@@ -51,6 +51,18 @@
     <div id="fx"></div>
     <div id="joystick"><div class="knob"></div></div>
 
+    <!-- Lightbox : formulaire du tirage au sort, par-dessus le jeu -->
+    <div id="lightbox" class="no-joy" hidden>
+      <div class="lb-box" role="dialog" aria-modal="true" aria-labelledby="lb-title">
+        <header class="lb-head">
+          <span id="lb-title">Participer au tirage</span>
+          <a id="lb-ext" class="lb-ext" href="https://formulaire.big-ce.com/pacmana" target="_blank" rel="noopener">Ouvrir dans un nouvel onglet</a>
+          <button id="lb-close" class="lb-close" aria-label="Fermer">×</button>
+        </header>
+        <div class="lb-body"><div class="lb-loading">Chargement du formulaire…</div><iframe id="lb-frame" title="Formulaire de participation" loading="lazy" allow="clipboard-write"></iframe></div>
+      </div>
+    </div>
+
     <!-- Écrans -->
     <div id="screens">
       <section id="screen-title" class="screen">
@@ -89,6 +101,7 @@
           <h2>LES ESPRITS<br>ONT GAGNÉ…</h2>
           <p class="score-line">Score <b id="over-score">0</b></p>
           <button id="btn-retry" class="btn big">REJOUER</button>
+          <button class="btn secondary btn-draw">PARTICIPER AU TIRAGE</button>
         </div>
       </section>
 
@@ -98,6 +111,7 @@
           <h2>NIVEAU 1<br>TERMINÉ</h2>
           <p class="score-line">Score <b id="win-score">0</b></p>
           <button id="btn-next" class="btn big">REJOUER</button>
+          <button class="btn secondary btn-draw">PARTICIPER AU TIRAGE</button>
           <p class="help">Niveau 2 bientôt disponible…</p>
         </div>
       </section>

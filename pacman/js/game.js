@@ -13,6 +13,7 @@ import { UI } from './ui.js';
 import { loadImageTexture, glowTexture } from './textures.js';
 
 const SCORE = { dot: 10, mana: 50, ghost: [200, 400, 800, 1600], extraLifeAt: 10000 };
+const DRAW_URL = 'https://formulaire.big-ce.com/pacmana'; // formulaire du tirage au sort
 
 export class Game {
   constructor(canvas) {
@@ -122,6 +123,12 @@ export class Game {
     document.getElementById('btn-next').addEventListener('click', () => this.newGame());
     document.getElementById('btn-resume').addEventListener('click', () => this.togglePause());
     document.getElementById('btn-restart').addEventListener('click', () => { this.audio.init(); this.newGame(); });
+    // tirage au sort : lightbox par-dessus le jeu
+    for (const b of document.querySelectorAll('.btn-draw')) b.addEventListener('click', () => this.openDraw());
+    document.getElementById('lb-close').addEventListener('click', () => this.closeDraw());
+    document.getElementById('lb-frame').addEventListener('load', () => { document.querySelector('.lb-loading').hidden = true; });
+    document.getElementById('lightbox').addEventListener('click', (e) => { if (e.target.id === 'lightbox') this.closeDraw(); });
+    window.addEventListener('keydown', (e) => { if (e.code === 'Escape' && !document.getElementById('lightbox').hidden) this.closeDraw(); });
     document.getElementById('btn-pause').addEventListener('click', () => this.togglePause());
     document.getElementById('btn-sound').addEventListener('click', () => { this.audio.init(); this.audio.setMuted(!this.audio.muted); this.ui.setSound(!this.audio.muted); });
     document.addEventListener('visibilitychange', () => { if (document.hidden && this.state === 'playing') this.togglePause(); });
@@ -132,6 +139,22 @@ export class Game {
     if (this.state === 'title') this.newGame();
     else if ((this.state === 'gameover' || this.state === 'win') && fromButton) this.newGame();
     else if (this.state === 'paused') this.togglePause();
+  }
+
+  openDraw() {
+    const lb = document.getElementById('lightbox');
+    const url = `${DRAW_URL}?score=${encodeURIComponent(this.score)}`;
+    const frame = document.getElementById('lb-frame');
+    document.getElementById('lb-ext').href = url;
+    document.querySelector('.lb-loading').hidden = false;
+    if (frame.src !== url) frame.src = url;
+    lb.hidden = false;
+    document.getElementById('lb-close').focus();
+  }
+  closeDraw() {
+    const lb = document.getElementById('lightbox');
+    lb.hidden = true;
+    document.getElementById('lb-frame').src = 'about:blank';
   }
 
   togglePause() {
