@@ -108,19 +108,19 @@ button.icon:active { transform: scale(.92); }
   background: conic-gradient(from 0deg, rgba(255, 170, 30, 0) 0deg, rgba(255, 200, 60, .95) 40deg, rgba(255, 120, 20, 0) 90deg, rgba(255, 230, 120, .9) 150deg, rgba(255, 90, 10, 0) 200deg, rgba(255, 210, 80, .95) 260deg, rgba(255, 140, 20, 0) 320deg, rgba(255, 200, 60, .9) 360deg);
   -webkit-mask: radial-gradient(circle, transparent 36%, #000 44%, #000 60%, transparent 72%); mask: radial-gradient(circle, transparent 36%, #000 44%, #000 60%, transparent 72%);
   filter: blur(3px) saturate(1.4); mix-blend-mode: screen;
-  animation: fire 1.5s cubic-bezier(.2, .8, .3, 1) forwards;
+  animation: fire 2.8s cubic-bezier(.2, .8, .3, 1) forwards;
 }
-.mana-burst .fire.b { animation-direction: reverse; animation-duration: 1.4s; filter: blur(12px); opacity: .6; transform: translate(-50%, -50%) scale(1.15); }
-@keyframes fire { 0% { transform: translate(-50%, -50%) rotate(0) scale(.2); opacity: 0; } 15% { opacity: 1; } 70% { opacity: .9; } 100% { transform: translate(-50%, -50%) rotate(540deg) scale(1.35); opacity: 0; } }
-.mana-burst .coin { position: absolute; left: 50%; top: 50%; width: min(36vw, 180px); aspect-ratio: 1; margin: calc(min(36vw, 180px) / -2) 0 0 calc(min(36vw, 180px) / -2); transform-style: preserve-3d; animation: coin 1.6s cubic-bezier(.25, .9, .3, 1) forwards; }
+.mana-burst .fire.b { animation-direction: reverse; animation-duration: 2.6s; filter: blur(12px); opacity: .6; transform: translate(-50%, -50%) scale(1.15); }
+@keyframes fire { 0% { transform: translate(-50%, -50%) rotate(0) scale(.2); opacity: 0; } 10% { opacity: 1; } 80% { opacity: .9; } 100% { transform: translate(-50%, -50%) rotate(540deg) scale(1.35); opacity: 0; } }
+.mana-burst .coin { position: absolute; left: 50%; top: 50%; width: min(36vw, 180px); aspect-ratio: 1; margin: calc(min(36vw, 180px) / -2) 0 0 calc(min(36vw, 180px) / -2); transform-style: preserve-3d; animation: coin 2.8s cubic-bezier(.25, .9, .3, 1) forwards; }
 .mana-burst .side { position: absolute; inset: 0; border-radius: 50%; backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 0 0 6px rgba(255, 215, 120, .9), 0 0 60px 10px rgba(255, 200, 80, .8), inset 0 0 20px rgba(0, 0, 0, .2); background: #fff; overflow: hidden; }
 .mana-burst .side img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .mana-burst .side.back { transform: rotateY(180deg); }
 @keyframes coin {
   0% { transform: scale(.15) rotateY(-180deg); opacity: 0; }
-  22% { transform: scale(1.2) rotateY(360deg); opacity: 1; }
-  32% { transform: scale(1) rotateY(360deg); opacity: 1; }
-  78% { transform: scale(1) rotateY(360deg); opacity: 1; }
+  13% { transform: scale(1.2) rotateY(360deg); opacity: 1; }
+  20% { transform: scale(1) rotateY(360deg); opacity: 1; }
+  86% { transform: scale(1) rotateY(360deg); opacity: 1; }
   100% { transform: scale(.4) rotateY(360deg) translateY(-90px); opacity: 0; }
 }
 .mana-burst.card .coin { width: min(56vw, 280px); aspect-ratio: 1010 / 642; margin: calc(min(56vw, 280px) * 642 / 1010 / -2) 0 0 calc(min(56vw, 280px) / -2); }
@@ -128,11 +128,11 @@ button.icon:active { transform: scale(.92); }
 .mana-burst.card .label { top: calc(min(56vw, 280px) * 642 / 1010 / 2 + 14px); }
 .mana-burst.card .fire { background: conic-gradient(from 0deg, rgba(120,220,255,0) 0deg, rgba(190,240,255,.95) 40deg, rgba(80,180,255,0) 90deg, rgba(220,250,255,.9) 150deg, rgba(60,160,255,0) 200deg, rgba(180,235,255,.95) 260deg, rgba(90,190,255,0) 320deg, rgba(190,240,255,.9) 360deg); }
 .mana-burst.card .label em { color: #bfefff; text-shadow: 0 0 20px rgba(120,220,255,.9), 0 3px 0 #0a2a40; }
-.mana-burst .label { position: absolute; left: 50%; top: calc(min(36vw, 180px) / 2 + 14px); transform: translateX(-50%); text-align: center; white-space: nowrap; animation: label 1.6s ease-out forwards; }
+.mana-burst .label { position: absolute; left: 50%; top: calc(min(36vw, 180px) / 2 + 14px); transform: translateX(-50%); text-align: center; white-space: nowrap; animation: label 2.8s ease-out forwards; }
 .mana-burst .label em { display: block; font-style: normal; font-family: var(--font-title); font-size: clamp(24px, 6vw, 42px); color: var(--gold-2); text-shadow: 0 0 20px rgba(255, 200, 80, .9), 0 3px 0 #3a2300; letter-spacing: .08em; }
 .mana-burst .label strong { display: block; font-size: clamp(14px, 3.5vw, 22px); font-weight: 800; color: #fff; text-shadow: 0 2px 8px #000; letter-spacing: .06em; text-transform: uppercase; }
 .mana-burst .label span { display: block; font-size: 13px; color: var(--teal); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; margin-top: 4px; text-shadow: 0 0 10px rgba(122, 245, 216, .8); }
-@keyframes label { 0%, 10% { opacity: 0; transform: translateX(-50%) translateY(20px); } 25% { opacity: 1; transform: translateX(-50%) translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes label { 0%, 6% { opacity: 0; transform: translateX(-50%) translateY(20px); } 16% { opacity: 1; transform: translateX(-50%) translateY(0); } 88% { opacity: 1; } 100% { opacity: 0; } }
 
 /* ------------------------------------------------------------ Lightbox (tirage au sort) */
 #lightbox { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: calc(10px + var(--sat)) 10px calc(10px + var(--sab)); background: rgba(2, 12, 14, .7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: lbIn .25s ease-out; }

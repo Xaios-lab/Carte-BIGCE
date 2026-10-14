@@ -84,7 +84,7 @@ export class UI {
       <div class="coin"><div class="side front"><img src="${partner.logo}" alt=""></div><div class="side back"><img src="${partner.logo}" alt=""></div></div>
       <div class="label"><em>${tag}</em><strong>${partner.name}</strong><span>${sub}</span></div>`;
     this.el.fx.appendChild(d);
-    setTimeout(() => d.remove(), 1700);
+    setTimeout(() => d.remove(), 2900);
   }
 
   /** Popup de score ancré dans le monde 3D */
