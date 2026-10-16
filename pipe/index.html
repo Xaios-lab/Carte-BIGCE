@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#06263a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Pipe Mana · BIG CE</title>
+  <meta name="description" content="Jeu de tuyaux 3D façon lagon polynésien, édition BIG CE : raccorde les tuyaux pour amener l'eau au réservoir, traverse les Manas des partenaires et participe au tirage au sort.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="assets/bigce-small.png">
+  <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+</head>
+<body>
+  <!-- Écran de chargement : affiché dès les premiers octets, retiré quand le jeu est prêt -->
+  <style>
+    #loader { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: radial-gradient(900px 500px at 50% 30%, #0e6fa8 0%, #06263a 60%, #041a2a 100%); color: #e6f7ff; font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif; transition: opacity .4s; }
+    #loader.off { opacity: 0; pointer-events: none; }
+    #loader img { width: 96px; height: 96px; animation: ld-float 2.4s ease-in-out infinite; filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .6)); }
+    #loader .t { font-family: 'Lilita One', Impact, 'Arial Black', sans-serif; font-size: 34px; letter-spacing: .06em; text-shadow: 0 0 22px rgba(95, 232, 255, .6), 0 3px 0 #052a45; }
+    #loader .s { font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: rgba(230, 247, 255, .75); }
+    #loader .bar { width: min(60vw, 240px); height: 8px; border-radius: 999px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+    #loader .bar i { display: block; width: 40%; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #9df3ff, #37e0ff); animation: ld-bar 1.3s ease-in-out infinite; }
+    #loader .drop { width: 22px; height: 22px; background: #5fe8ff; border-radius: 0 50% 50% 50%; transform: rotate(45deg); box-shadow: 0 0 14px rgba(95, 232, 255, .8); animation: ld-drop 1.1s ease-in-out infinite; }
+    @keyframes ld-bar { 0% { transform: translateX(-120%); } 100% { transform: translateX(300%); } }
+    @keyframes ld-float { 50% { transform: translateY(-6px); } }
+    @keyframes ld-drop { 50% { transform: rotate(45deg) translate(-4px, -4px) scale(.85); } }
+  </style>
+  <div id="loader" role="status" aria-live="polite">
+    <img src="assets/bigce-small.png" alt="BIG CE" width="96" height="96">
+    <div class="t">PIPE MANA</div>
+    <div class="drop"></div>
+    <div class="bar"><i></i></div>
+    <div class="s" id="loader-text">Chargement du jeu…</div>
+  </div>
+  <div id="app">
+    <canvas id="gl"></canvas>
+
+    <!-- HUD -->
+    <header id="hud">
+      <div class="hud-block left">
+        <span class="lbl">Score</span>
+        <span id="score" class="val">00000</span>
+      </div>
+      <div class="hud-block center">
+        <span id="level" class="val">Niveau 1</span>
+        <span class="lbl">Record <b id="hiscore">00000</b></span>
+      </div>
+      <div class="hud-block right">
+        <span id="lives" class="lives"></span>
+        <button id="btn-sound" class="icon" aria-label="Son">
+          <svg viewBox="0 0 24 24" width="22" height="22"><path class="spk" d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path class="wave" d="M16 8.5a4 4 0 0 1 0 7M18.5 6a7.5 7.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path class="cross" d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <button id="btn-pause" class="icon" aria-label="Pause">
+          <svg viewBox="0 0 24 24" width="22" height="22"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- File des tuyaux à venir -->
+    <aside id="queue" aria-label="Prochains tuyaux">
+      <span class="lbl">Suivant</span>
+      <div id="queue-items"></div>
+    </aside>
+
+    <!-- Barre d'état : compte à rebours / eau, quota, accélération -->
+    <div id="status">
+      <div class="status-left">
+        <span id="status-text" class="status-text">Prêt ?</span>
+        <div class="quota"><i id="quota-bar"></i><span id="quota-text">Tuyaux 0 / 12</span></div>
+      </div>
+      <button id="btn-fast" class="fast" hidden aria-label="Accélérer l'eau">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 6l8 6-8 6V6zm9 0l8 6-8 6V6z" fill="currentColor"/></svg>
+        <span>Accélérer</span>
+      </button>
+    </div>
+
+    <!-- Bandeau partenaires -->
+    <footer id="partners">
+      <span class="lbl">BIG CE Partners</span>
+      <div id="partner-logos"></div>
+    </footer>
+
+    <div id="msg" class="msg"></div>
+    <div id="hint"><div class="finger"></div><span>Touche une case pour poser le tuyau</span></div>
+    <div id="fx"></div>
+
+    <!-- Lightbox : formulaire du tirage au sort / partenaires, par-dessus le jeu -->
+    <div id="lightbox" hidden>
+      <div class="lb-box" role="dialog" aria-modal="true" aria-labelledby="lb-title">
+        <header class="lb-head">
+          <span id="lb-title">Participer au tirage</span>
+          <a id="lb-ext" class="lb-ext" href="https://formulaire.big-ce.com/pipemana" target="_blank" rel="noopener">Ouvrir dans un nouvel onglet</a>
+          <button id="lb-close" class="lb-close" aria-label="Fermer">×</button>
+        </header>
+        <div class="lb-body">
+          <div class="lb-loading">Chargement…</div>
+          <iframe id="lb-frame" title="Formulaire de participation" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Écrans -->
+    <div id="screens">
+      <section id="screen-title" class="screen">
+        <div class="panel title">
+          <img class="brand-logo" src="assets/bigce.png" alt="BIG CE">
+          <div class="brand"><small>présente</small></div>
+          <h1>PIPE MANA</h1>
+          <p class="sub" id="title-level">Niveau 1</p>
+          <p class="prize" id="title-prize" hidden></p>
+          <button id="btn-play" class="btn big">JOUER</button>
+          <p class="help">
+            <span class="touch-only">Touche une case pour y poser le prochain tuyau.</span>
+            <span class="kb-only">Clique une case (ou flèches + Espace) pour poser le prochain tuyau · F accélère l'eau · P : pause.</span>
+            <br>Amène l'eau jusqu'au <b>réservoir</b> en traversant assez de tuyaux. Passe par les <b>Manas</b> (logos partenaires) pour ralentir l'eau !
+          </p>
+          <p class="link-line"><a href="https://www.guide2026.big-ce.com/PacMana/sponsors" target="_blank" rel="noopener">Voir nos partenaires sponsors</a></p>
+          <div class="title-partners">
+            <img data-partner="plomberie" alt="Plomberie de Faa'a" width="52" height="52">
+            <img data-partner="amouy" alt="Amouy" width="52" height="52">
+            <img data-partner="guilloux" alt="Guilloux" width="52" height="52">
+            <img data-partner="ace" alt="ACE Sin Tung Hing" width="52" height="52">
+            <img data-partner="charcuterie" alt="Charcuterie du Pacifique" width="52" height="52">
+            <img data-partner="gan" alt="GAN" width="52" height="52">
+            <img data-partner="taapuna" alt="Taapuna La Boutique" width="52" height="52">
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-pause" class="screen">
+        <div class="panel">
+          <h2>PAUSE</h2>
+          <button id="btn-resume" class="btn big">REPRENDRE</button>
+          <button id="btn-restart" class="btn secondary">RECOMMENCER</button>
+          <p class="link-line"><a href="https://www.guide2026.big-ce.com/PacMana/sponsors" target="_blank" rel="noopener">Voir nos partenaires sponsors</a></p>
+        </div>
+      </section>
+
+      <section id="screen-over" class="screen">
+        <div class="panel">
+          <h2>LA FUITE<br>A GAGNÉ…</h2>
+          <p class="record" hidden>🏆 Nouveau record !</p>
+          <p class="score-line">Score <b id="over-score">0</b></p>
+          <button id="btn-retry" class="btn big">REJOUER</button>
+          <button class="btn secondary btn-draw">PARTICIPER AU TIRAGE</button>
+          <p class="link-line"><a href="https://www.guide2026.big-ce.com/PacMana/sponsors" target="_blank" rel="noopener">Voir nos partenaires sponsors</a></p>
+        </div>
+      </section>
+
+      <section id="screen-win" class="screen">
+        <div class="panel">
+          <div class="brand">Māuruuru !</div>
+          <h2 id="win-title">NIVEAU 1<br>TERMINÉ</h2>
+          <p class="record" hidden>🏆 Nouveau record !</p>
+          <p class="score-line">Score <b id="win-score">0</b></p>
+          <button id="btn-next" class="btn big">NIVEAU SUIVANT</button>
+          <button class="btn secondary btn-draw">PARTICIPER AU TIRAGE</button>
+          <p class="link-line"><a href="https://www.guide2026.big-ce.com/PacMana/sponsors" target="_blank" rel="noopener">Voir nos partenaires sponsors</a></p>
+          <p class="help" id="win-help"></p>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
