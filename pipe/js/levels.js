@@ -1,88 +1,91 @@
 // ---------------------------------------------------------------------------
-//  LEVELS, THEME & PARTNERS — Pipe Mana v2 (vallée tahitienne, tuyaux à pivoter)
+//  LEVELS, THEMES & PARTNERS
+//  Chaque niveau = une grille ASCII + un thème + des réglages (quota, vitesse de l'eau…).
 //
-//  Chaque niveau = un plan de tuyauterie dessiné en caractères de tracé, dans sa position RÉSOLUE.
-//  Le jeu mélange ensuite l'orientation des tuyaux (graine fixe par niveau et par essai).
-//
-//  Légende :
-//    T  château d'eau (source, l'eau sort vers le bas)      A B C D  enseignes (4 logos partenaires)
-//    .  herbe (vide)        #  rocher
-//    ─ │                     tuyaux droits
-//    ┌ ┐ └ ┘                 coudes (les deux côtés ouverts : ┌ = Est+Sud, ┐ = Ouest+Sud, └ = Nord+Est, ┘ = Nord+Ouest)
-//    ┬ ┴ ├ ┤                 tés (trois côtés ouverts)       ┼  croix (quatre côtés, ne pivote pas)
-//  `gold` : case d'un tuyau doré « Carte BIG CE » (bonus quand l'eau le traverse).
+//  Légende de la grille :
+//    .  case libre (on peut y poser un tuyau)
+//    #  rocher volcanique (case bloquée)         T  cocotier (case bloquée)
+//    ^ v < >  robinet source : la flèche donne le sens de sortie de l'eau
+//    R  réservoir d'arrivée (logo du partenaire principal)
+//    o  Mana : vanne-croix dorée déjà posée, logo partenaire (bonus quand l'eau la traverse)
 // ---------------------------------------------------------------------------
 
 export const PARTNERS = {
-  plomberie: { id: 'plomberie', name: 'La Plomberie de Faa’a', logo: 'assets/enseignes/plomberie-faaa.jpg', color: '#1d6fd2', ratio: 1 },
-  polyplast: { id: 'polyplast', name: 'Polyplast · La Plomberie de Fariipiti', short: 'Polyplast', logo: 'assets/enseignes/polyplast.jpg', color: '#0f6fc2', ratio: 836 / 530 },
-  plastibois: { id: 'plastibois', name: 'PlastiBois Taravao', short: 'PlastiBois', logo: 'assets/enseignes/plastibois.png', color: '#f28b1e', ratio: 322 / 210 },
-  bigce: { id: 'bigce', name: 'BIG CE', logo: 'assets/bigce.png', color: '#f2c35b', ratio: 1 },
+  // Partenaire principal du jeu : son logo est à remplacer par le fichier définitif (PNG 512×512 rond)
+  plomberie: { id: 'plomberie', name: 'Plomberie de Faa’a', logo: null, placeholder: { line1: 'PLOMBERIE', line2: 'DE FAA’A' }, color: '#1e6fd9' },
+  charcuterie: { id: 'charcuterie', name: 'Charcuterie du Pacifique', logo: 'assets/logos/charcuterie.png', color: '#c8102e' },
+  ace:      { id: 'ace',      name: 'ACE Sin Tung Hing',  logo: 'assets/logos/ace.png',      color: '#e8232a' },
+  gan:      { id: 'gan',      name: 'GAN',                logo: 'assets/logos/gan.png',      color: '#f5b400' },
+  taapuna:  { id: 'taapuna',  name: 'Taapuna La Boutique',logo: 'assets/logos/taapuna.png',  color: '#1b1b1b' },
+  amouy:    { id: 'amouy',    name: 'Amouy',              logo: 'assets/logos/amouy.png',    color: '#f28b1e' },
+  guilloux: { id: 'guilloux', name: 'Guilloux',           logo: 'assets/logos/guilloux.png', color: '#d4231f' },
 };
 
-export const THEME = {
-  id: 'vallee',
-  name: 'Vallée tahitienne',
-  sky: { zenith: 0x1f6fc9, horizon: 0xcfe9f6, sun: 0xfff1d0 },
-  fog: { color: 0xc9e3ee, density: 0.011 },
-  hemi: { sky: 0xdff2ff, ground: 0x6a8a3e, intensity: 1.2 },
-  sun: { color: 0xffe9c4, intensity: 2.6, position: [-9, 16, 6] },
-  grass: { a: 0x5fa83a, b: 0x8fcf48, c: 0x3f7f2a, dry: 0xb8c45a },
-  dirt: { a: 0x8a6a45, b: 0xb08f5e },
-  rock: 0x5b5a5c,
-  river: { deep: 0x1c6a8a, shallow: 0x58c6d8, foam: 0xeafcff },
-  pipe: { body: 0x2a72d9, glass: 0x3d8ff0, steel: 0xb9c2cc, brass: 0xd4a349, water: 0x14c4f5, waterGlow: 0xa6f0ff, gold: 0xe7c25a },
-  concrete: 0xbfb9ad,
-  palm: { trunk: 0x8b6a45, leaf: 0x3c9b3d, leaf2: 0x7fcf62 },
-  flowers: [0xff3b6b, 0xff2fa8, 0xff8c1a, 0xffe14d, 0xffffff],
+/** Partenaire dont le logo orne le réservoir d'arrivée */
+export const MAIN_PARTNER = 'plomberie';
+
+export const THEMES = {
+  lagon: {
+    id: 'lagon',
+    name: 'Lagon tropical',
+    sky: { top: 0x0b5f9e, bottom: 0x7fe0f2 },
+    fog: { color: 0x7fd6ea, density: 0.012 },
+    hemi: { sky: 0xcdf4ff, ground: 0xe7d6a8, intensity: 1.35 },
+    sun: { color: 0xfff6e0, intensity: 2.4 },
+    sea: { deep: 0x0a6fa3, shallow: 0x3fd3e6, foam: 0xe6fcff },
+    sand: { light: 0xf3e3b6, dark: 0xd9c38a, edge: 0xc9ad74, grid: 0x6fb9c4 },
+    pipe: { body: 0x1e6fd9, glass: 0x6fb6ff, brass: 0xd9a441, water: 0x14c4f5, waterGlow: 0x9df3ff, preview: 0x9ad4ff },
+    rock: 0x3d3f46,
+    palm: { trunk: 0x9a7246, leaf: 0x2fa84f, leaf2: 0x6fd36b },
+    flowers: [0xff3b6b, 0xff2fa8, 0xff8c1a, 0xffe14d],
+    gold: 0xe7c25a,
+  },
 };
 
 export const LEVELS = [
   {
     id: 1,
     name: 'Niveau 1',
-    subtitle: 'La vallée de Faa’a',
+    subtitle: 'La fontaine de Faa’a',
     prize: '10 000 F de chèques cadeaux à gagner',
-    signs: { A: 'plomberie', B: 'polyplast', C: 'plastibois', D: 'bigce' },
-    countdown: 22,      // secondes avant que l'eau ne jaillisse
-    retryCountdown: 10, // après une fuite
-    cellsPerSec: 0.5,   // vitesse de l'eau
-    seed: 11,
-    gold: [[3, 5]],
+    theme: 'lagon',
+    mana: ['plomberie', 'amouy', 'guilloux', 'ace'],   // ordre de lecture de la grille (haut-gauche → bas-droite)
+    quota: 12,          // nombre de tuyaux à remplir avant que le réservoir s'ouvre
+    countdown: 15,      // secondes avant que l'eau ne jaillisse
+    secPerCell: 2.6,    // durée de traversée d'un tuyau
+    cardAt: [7, 18],    // la Carte BIG CE apparaît dans la file après N pièces posées
     grid: [
-      '...T...',
-      '..┌┴┐..',
-      '..│.│..',
-      'A─┤.├─B',
-      '..│#│..',
-      '..├─┤..',
-      '..│.│..',
-      'C─┘.└─D',
+      'v......',
       '.......',
+      '..#....',
+      '.o...o.',
+      '.......',
+      '.o.#.o.',
+      '.......',
+      '......R',
     ],
   },
   {
     id: 2,
     name: 'Niveau 2',
-    subtitle: 'Les hauteurs de Punaauia',
+    subtitle: 'Le lagon de Punaauia',
     prize: '10 000 F de chèques cadeaux à gagner',
-    signs: { A: 'polyplast', B: 'plomberie', C: 'bigce', D: 'plastibois' },
-    countdown: 20,
-    retryCountdown: 10,
-    cellsPerSec: 0.55,
-    seed: 23,
-    gold: [[3, 4]],
+    theme: 'lagon',
+    mana: ['plomberie', 'gan', 'taapuna', 'charcuterie'],
+    quota: 18,
+    countdown: 12,
+    secPerCell: 2.1,
+    cardAt: [8, 20],
     grid: [
-      '...T...',
-      '.┌─┤.#.',
-      '.│.└─┐.',
-      'A┘#..│.',
-      '..┌─┬┘.',
-      '..│.└─B',
-      '.┌┤.#..',
-      'C┘│┌─┐.',
-      '..└┘.└D',
-      '...─...',
+      'T......T',
+      '>.......',
+      '...o....',
+      '.#....#.',
+      '....o...',
+      '.o......',
+      '......o.',
+      '.#......',
+      'T.....RT',
     ],
   },
   {
@@ -90,23 +93,23 @@ export const LEVELS = [
     name: 'Niveau 3',
     subtitle: 'La cascade de Papenoo',
     prize: '10 000 F de chèques cadeaux à gagner',
-    signs: { A: 'plastibois', B: 'bigce', C: 'plomberie', D: 'polyplast' },
-    countdown: 18,
-    retryCountdown: 9,
-    cellsPerSec: 0.65,
-    seed: 37,
-    gold: [[4, 5]],
+    theme: 'lagon',
+    mana: ['plomberie', 'amouy', 'guilloux', 'gan', 'ace'],
+    quota: 24,
+    countdown: 10,
+    secPerCell: 1.7,
+    cardAt: [8, 20, 32],
     grid: [
-      '....T....',
-      '..┌─┴─┐..',
-      '..│.#.│..',
-      'A─┤.─.├─B',
-      '..└┐.┌┘..',
-      '.#.├─┤.#.',
-      '..┌┘│└┐..',
-      '..│.┼.│..',
-      'C─┘...└─D',
-      '.........',
+      'T.......T',
+      '.v.......',
+      '...o..#..',
+      '.#.......',
+      '.....o...',
+      '..o....#.',
+      '.#.......',
+      '....o....',
+      '.......R.',
+      'T.......T',
     ],
   },
 ];
