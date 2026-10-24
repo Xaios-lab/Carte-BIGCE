@@ -8,14 +8,14 @@ export class Input {
     this.onHover = null;    // (px, py) ou (null) quand le pointeur quitte la zone
     this.onCursor = null;   // ('N'|'E'|'S'|'W') clavier
     this.onPlace = null;    // clavier : poser sur la case du curseur
-    this.onFast = null;     // Espace / F : lancer l'eau
+    this.onFast = null;     // (bool) accélération maintenue
     this.onPause = null;
     this.onAction = null;   // Entrée / Espace sur un écran
     this.enabled = () => true;
     this.pointerFine = matchMedia('(pointer: fine)').matches;
     this._down = null;
 
-    const ignore = (t) => t.closest && t.closest('button, a, #screens, #lightbox, #status, #partners, #hud');
+    const ignore = (t) => t.closest && t.closest('button, a, #screens, #lightbox, #queue, #status');
     el.addEventListener('pointerdown', (e) => {
       if (ignore(e.target)) return;
       this._down = { x: e.clientX, y: e.clientY, t: performance.now(), id: e.pointerId };
@@ -41,15 +41,16 @@ export class Input {
       if (e.code === 'KeyP' || e.code === 'Escape') { if (this.onPause) this.onPause(); e.preventDefault(); return; }
       if (e.code === 'Enter' || e.code === 'Space') {
         if (this.onAction && this.onAction()) { e.preventDefault(); return; }
-        if (!this.enabled()) return;
-        if (e.code === 'Space' && this.onFast) this.onFast(true);   // Espace : lancer l'eau
-        else if (this.onPlace) this.onPlace();                       // Entrée : pivoter la pièce du curseur
-        e.preventDefault();
+        if (this.enabled() && this.onPlace) { this.onPlace(); e.preventDefault(); }
         return;
       }
-      if (e.code === 'KeyF') { if (this.onFast) this.onFast(true); return; }
+      if (e.code === 'KeyF' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') { if (this.onFast) this.onFast(true); return; }
       const dir = DIRS[e.code];
       if (dir && this.enabled()) { if (this.onCursor) this.onCursor(dir); e.preventDefault(); }
     });
+    window.addEventListener('keyup', (e) => {
+      if (e.code === 'KeyF' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') { if (this.onFast) this.onFast(false); }
+    });
+    window.addEventListener('blur', () => { if (this.onFast) this.onFast(false); });
   }
 }
