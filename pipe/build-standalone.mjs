@@ -1,5 +1,5 @@
 // Construit pipemana-standalone.html : un seul fichier HTML5 avec tout embarqué
-// (Three.js, code du jeu, logos, carte) — s'ouvre en double-clic dans Chrome / Safari / Firefox.
+// (Three.js, GSAP, code du jeu, logos, carte) — s'ouvre en double-clic dans Chrome / Safari / Firefox.
 // Usage : node build-standalone.mjs
 import fs from 'node:fs';
 import path from 'node:path';
@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
-const MIME = { '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg' };
+const MIME = { '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg' };
 const dataUri = (p) => `data:${MIME[path.extname(p)]};base64,${fs.readFileSync(path.join(root, p)).toString('base64')}`;
 
 // --- assets -> data URIs
@@ -24,7 +24,7 @@ const pairs = m[1].split(',').map((e) => { const [a, b] = e.trim().split(/\s+as\
 three = three.slice(0, m.index) + `return {${pairs.join(',')}};`;
 
 // --- modules du jeu -> IIFE (dans l'ordre des dépendances)
-const order = ['levels', 'pieces', 'textures', 'board', 'camera', 'world', 'input', 'audio', 'ui', 'game'];
+const order = ['levels', 'network', 'grid3d', 'textures', 'motion', 'camera', 'terrain', 'world', 'input', 'audio', 'ui', 'game'];
 const modName = (file) => '__mod_' + path.basename(file, '.js');
 const convert = (name) => {
   let src = read(`js/${name}.js`);
@@ -42,6 +42,7 @@ js = inlineAssets(js);
 const css = inlineAssets(read('css/style.css'), '../');
 let html = read('index.html');
 html = html.replace(/<script type="importmap">[\s\S]*?<\/script>\s*/, '');
+html = html.replace(/<script src="vendor\/gsap.min.js"><\/script>\s*/, () => `<script>\n${read('vendor/gsap.min.js')}\n</script>\n`);
 html = html.replace(/<link rel="stylesheet" href="css\/style.css">/, `<style>\n${css}\n</style>`);
 html = html.replace(/<script type="module" src="js\/main.js"><\/script>/, () => `<script>\n${js}\n</script>`);
 html = inlineAssets(html);

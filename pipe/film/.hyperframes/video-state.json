@@ -1,7 +1,7 @@
 {
   "version": 1,
   "historyId": "f563ef5f-c75e-4e73-8306-d999e96e0b7d",
-  "currentRevision": "41894cb3-3344-450f-9f0d-e260914fec0f",
+  "currentRevision": "e01523f5-3075-46d5-b697-e059499cb505",
   "pendingChanges": false,
   "files": {
     "AGENTS.md": {
@@ -77,8 +77,8 @@
       "content": "/root/.cache/hyperframes/history/f563ef5f-c75e-4e73-8306-d999e96e0b7d/blobs/f3/f36bd7e1d92912f1c9bf4d12b02eb5c2365012d02bc65519fbe323a119f78623"
     },
     "assets/clip-flow.mp4": {
-      "hash": "a26bd7e58845cddeac08d1b97ae9a61ecb943f303d16b0033b9e4a40d7a1a42b",
-      "content": "/root/.cache/hyperframes/history/f563ef5f-c75e-4e73-8306-d999e96e0b7d/blobs/a2/a26bd7e58845cddeac08d1b97ae9a61ecb943f303d16b0033b9e4a40d7a1a42b"
+      "hash": "6af0aadbe9668133fbbaea17d8803a60fa12bcb81610db673d1396ac2aa15f7a",
+      "content": "/root/.cache/hyperframes/history/f563ef5f-c75e-4e73-8306-d999e96e0b7d/blobs/6a/6af0aadbe9668133fbbaea17d8803a60fa12bcb81610db673d1396ac2aa15f7a"
     },
     "assets/clip-orbit.mp4": {
       "hash": "b2feca3ab3c46a4dea7826eca09647b4d3aac49963949522b1f40315474a3fb8",
@@ -152,21 +152,6 @@
         "compositions/enseignes.html": {
           "before": "/root/.cache/hyperframes/history/f563ef5f-c75e-4e73-8306-d999e96e0b7d/blobs/68/682492a6c380dd41d8caa7e3d1173a998752a414c780efb05ac52b11e2787ac8",
           "after": "/root/.cache/hyperframes/history/f563ef5f-c75e-4e73-8306-d999e96e0b7d/blobs/cd/cd253d9813f317599aa92b7250c44762db84b48aa01ed34992460b468169b919"
-        }
-      }
-    },
-    "41894cb3-3344-450f-9f0d-e260914fec0f": {
-      "actor": {
-        "kind": "outside",
-        "name": "Outside"
-      },
-      "label": "Changed outside the app",
-      "startedAt": 1792823113876,
-      "endedAt": 1792823113877,
-      "files": {
-        "assets/clip-flow.mp4": {
-          "before": "/root/.cache/hyperframes/history/f563ef5f-c75e-4e73-8306-d999e96e0b7d/blobs/6a/6af0aadbe9668133fbbaea17d8803a60fa12bcb81610db673d1396ac2aa15f7a",
-          "after": "/root/.cache/hyperframes/history/f563ef5f-c75e-4e73-8306-d999e96e0b7d/blobs/a2/a26bd7e58845cddeac08d1b97ae9a61ecb943f303d16b0033b9e4a40d7a1a42b"
         }
       }
     }
@@ -537,14 +522,13 @@
   },
   "renders": {
     "latest": {
-      "id": "6376a1f7-a5c7-48fb-baef-6621b278bb8b",
-      "completedAt": 1792823196348,
-      "output": "/tmp/claude-0/-home-user-Carte-BIGCE/b6140602-48a4-5c81-895b-183c5326f4a8/scratchpad/pipe-mana-intro-delivery.mp4",
+      "id": "32a1d21e-09f6-4330-8f28-ff8e14908f11",
+      "completedAt": 1792822733425,
+      "output": "/home/user/Carte-BIGCE/pipe/film/pipe-mana-intro.mp4",
       "status": "completed",
-      "revision": "41894cb3-3344-450f-9f0d-e260914fec0f"
+      "revision": "e01523f5-3075-46d5-b697-e059499cb505"
     },
     "retainedRevisions": [
-      "41894cb3-3344-450f-9f0d-e260914fec0f",
       "e01523f5-3075-46d5-b697-e059499cb505"
     ]
   },
