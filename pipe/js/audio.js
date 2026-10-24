@@ -70,6 +70,7 @@ export class AudioFX {
   // --- événements de jeu
   place() { this._tone(520, { type: 'square', dur: 0.06, gain: 0.12 }); this._tone(260, { type: 'triangle', dur: 0.09, gain: 0.2, delay: 0.01 }); }
   replace() { this._splash(0.12, 0.25, 500); this._tone(180, { type: 'sawtooth', dur: 0.12, gain: 0.12 }); }
+  rotate() { this._tone(900, { type: 'triangle', dur: 0.07, gain: 0.12, slide: 600 }); this._tone(240, { type: 'square', dur: 0.05, gain: 0.06, delay: 0.03 }); }
   invalid() { this._tone(140, { type: 'square', dur: 0.1, gain: 0.08 }); }
   enterPipe() { this._tone(660 + Math.random() * 120, { type: 'sine', dur: 0.12, gain: 0.1, slide: 420 }); }
   mana() { [523, 659, 784, 1046].forEach((f, i) => this._tone(f, { type: 'triangle', dur: 0.35, gain: 0.22, delay: i * 0.08 })); }
