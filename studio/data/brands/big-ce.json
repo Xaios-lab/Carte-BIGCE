@@ -1,0 +1,28 @@
+{
+  "id": "big-ce",
+  "name": "BIG CE",
+  "tagline": "La carte avantages des salariés en Polynésie",
+  "description": "BIG CE est une carte de comité d'entreprise mutualisée en Polynésie française : elle donne aux salariés des entreprises adhérentes des réductions et avantages chez des centaines de partenaires locaux (loisirs, restaurants, voyages, shopping, bien-être).",
+  "audience": "Salariés et dirigeants de PME/TPE polynésiennes, DRH, partenaires commerçants. Public familial, 25–55 ans, Tahiti et îles.",
+  "tone": "Chaleureux, solaire, accessible, fier d'être local (« fenua »), dynamique mais jamais agressif. Tutoiement possible en UGC, vouvoiement en institutionnel.",
+  "primary": "#0b3d91",
+  "secondary": "#00a3e0",
+  "accent": "#ffb703",
+  "fonts": "Inter / Montserrat",
+  "language": "fr",
+  "region": "Polynésie française (Tahiti)",
+  "visualStyle": "Lumière tropicale, lagon, couleurs vives, personnes souriantes et diverses, carte BIG CE visible en main, décor local (Papeete, plages, marché), rendu photo moderne et premium.",
+  "avoid": "Clichés exotiques dégradants, stock photo générique, texte illisible, logos déformés.",
+  "cta": [
+    "Demandez votre carte",
+    "Rejoignez BIG CE",
+    "Découvrez les avantages"
+  ],
+  "logo": null,
+  "references": [
+    "https://www.big-ce.pf/sites/default/files/2024-12/Carte-2025-Recto.png",
+    "https://www.big-ce.pf/sites/default/files/2024-12/Carte-2025-Verso.png"
+  ],
+  "createdAt": 1793415161124,
+  "updatedAt": 1793415162855
+}

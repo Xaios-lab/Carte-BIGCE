@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio Créa IA — BIG CE</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<aside class="sidebar">
+  <div class="logo-block">
+    <div class="logo-mark">🎬</div>
+    <div><div class="logo-title">Studio Créa IA</div><div class="logo-sub">Logos · Pub · Vidéo · UGC</div></div>
+  </div>
+  <nav>
+    <button data-view="dashboard" class="active">📊 Tableau de bord</button>
+    <button data-view="logo">◆ Logo</button>
+    <button data-view="image">🖼 Visuel publicitaire</button>
+    <button data-view="video">🎥 Vidéo promo</button>
+    <button data-view="ugc">🤳 UGC face caméra</button>
+    <button data-view="library">🗂 Bibliothèque</button>
+    <button data-view="brands">🎨 Marques</button>
+    <button data-view="connections">🔌 Connexions & modèles</button>
+  </nav>
+  <div id="mode-badge" class="mode-badge"></div>
+</aside>
+
+<main>
+  <!-- ───────── Tableau de bord ───────── -->
+  <section id="view-dashboard" class="view active">
+    <h1>Tableau de bord</h1>
+    <div id="dash-alert"></div>
+    <div class="cards" id="dash-cards"></div>
+    <h2>Travaux récents</h2>
+    <div id="dash-jobs" class="job-list"></div>
+  </section>
+
+  <!-- ───────── Logo ───────── -->
+  <section id="view-logo" class="view">
+    <h1>Générateur de logo</h1>
+    <p class="lead">Brief → concepts par le directeur créatif → logos vectoriels → PNG transparent / SVG.</p>
+    <form id="form-logo" class="form" data-kind="logo">
+      <label>Brief <textarea name="brief" required rows="3" placeholder="Ex. : logo pour BIG CE, carte avantages des salariés en Polynésie : moderne, chaleureux, symbole local (vague, fleur de tiaré, carte)…"></textarea></label>
+      <div class="row">
+        <label>Marque <select name="brandId" class="brand-select"></select></label>
+        <label>Concepts <input type="number" name="concepts" value="4" min="1" max="8"></label>
+        <label>Variantes / concept <input type="number" name="variantsPerConcept" value="1" min="1" max="4"></label>
+      </div>
+      <div class="row">
+        <label>Modèle <select name="model" class="model-select" data-task="image" data-logo="1"></select></label>
+        <label class="check"><input type="checkbox" name="transparent" checked> PNG fond transparent</label>
+        <label class="check"><input type="checkbox" name="svg"> Convertir en SVG</label>
+      </div>
+      <label>Précisions de style (optionnel) <input name="extraPrompt" placeholder="flat, two colors, rounded shapes…"></label>
+      <div class="actions"><span class="estimate"></span><button type="submit" class="primary">Générer les logos</button></div>
+    </form>
+    <div class="job-panel" id="panel-logo"></div>
+  </section>
+
+  <!-- ───────── Visuel pub ───────── -->
+  <section id="view-image" class="view">
+    <h1>Visuel publicitaire</h1>
+    <p class="lead">Accroche + direction artistique → image par format → habillage automatique (bandeau marque, titre, CTA, logo).</p>
+    <form id="form-image" class="form" data-kind="image">
+      <label>Brief <textarea name="brief" required rows="3" placeholder="Ex. : campagne de rentrée : -20 % chez 300 partenaires avec la carte BIG CE, ambiance famille au lagon…"></textarea></label>
+      <div class="row">
+        <label>Marque <select name="brandId" class="brand-select"></select></label>
+        <label>Modèle <select name="model" class="model-select" data-task="image"></select></label>
+        <label>Images / format <input type="number" name="count" value="1" min="1" max="4"></label>
+      </div>
+      <fieldset class="formats"><legend>Formats</legend>
+        <label class="check"><input type="checkbox" name="formats" value="1:1" checked> 1:1 Post</label>
+        <label class="check"><input type="checkbox" name="formats" value="4:5"> 4:5 Feed</label>
+        <label class="check"><input type="checkbox" name="formats" value="9:16"> 9:16 Story</label>
+        <label class="check"><input type="checkbox" name="formats" value="16:9"> 16:9 Bannière</label>
+      </fieldset>
+      <div class="row">
+        <label>Titre imposé (optionnel) <input name="headline" placeholder="laisser vide = généré"></label>
+        <label>CTA imposé (optionnel) <input name="cta" placeholder="Demandez votre carte"></label>
+      </div>
+      <div class="row">
+        <label>Photo produit / carte à intégrer (optionnel, active le mode retouche) <input type="file" name="refImages" accept="image/*" multiple data-upload="refImages"></label>
+        <label class="check"><input type="checkbox" name="overlay" checked> Habiller (bandeau + titre + CTA)</label>
+      </div>
+      <label>Précisions de style (optionnel) <input name="extraPrompt" placeholder="golden hour, 35mm, shallow depth of field…"></label>
+      <div class="actions"><span class="estimate"></span><button type="submit" class="primary">Générer les visuels</button></div>
+    </form>
+    <div class="job-panel" id="panel-image"></div>
+  </section>
+
+  <!-- ───────── Vidéo promo ───────── -->
+  <section id="view-video" class="view">
+    <h1>Vidéo promotionnelle</h1>
+    <p class="lead">Script & storyboard → image clé par scène → animation → voix off → musique → montage (sous-titres, logo, format).</p>
+    <form id="form-video" class="form" data-kind="video">
+      <label>Brief <textarea name="brief" required rows="3" placeholder="Ex. : vidéo 30 s pour présenter la carte BIG CE 2026 aux DRH : avantages, partenaires, simplicité, appel à adhérer…"></textarea></label>
+      <div class="row">
+        <label>Marque <select name="brandId" class="brand-select"></select></label>
+        <label>Durée (s) <input type="number" name="duration" value="30" min="10" max="90"></label>
+        <label>Scènes <input type="number" name="scenes" placeholder="auto" min="2" max="10"></label>
+        <label>Format <select name="aspect"><option value="16:9">16:9 YouTube / écran</option><option value="9:16">9:16 Reels / TikTok</option><option value="1:1">1:1 Feed</option><option value="4:5">4:5 Feed</option></select></label>
+      </div>
+      <div class="row">
+        <label>Méthode <select name="mode"><option value="i2v">Image clé → vidéo (cohérent, recommandé)</option><option value="t2v">Texte → vidéo direct</option></select></label>
+        <label>Modèle image <select name="imageModel" class="model-select" data-task="image"></select></label>
+        <label>Modèle vidéo <select name="videoModel" class="model-select" data-task="video-i2v" data-task-alt="video-t2v"></select></label>
+        <label>Résolution <select name="resolution"><option value="480p">480p (éco)</option><option value="720p" selected>720p</option><option value="1080p">1080p</option></select></label>
+      </div>
+      <div class="row">
+        <label class="check"><input type="checkbox" name="voiceover" checked> Voix off</label>
+        <label>Modèle voix <select name="ttsModel" class="model-select" data-task="tts"></select></label>
+        <label>Voix <select name="voice" class="voice-select"></select></label>
+        <label>Musique <select name="music"><option value="none">Aucune</option><option value="generate">Générer (IA, libre de droits)</option><option value="upload">Fichier…</option></select></label>
+        <label class="music-file hidden">Fichier audio <input type="file" name="musicFile" accept="audio/*" data-upload="musicUpload"></label>
+      </div>
+      <div class="row">
+        <label class="check"><input type="checkbox" name="subtitles" checked> Sous-titres incrustés</label>
+        <label class="check"><input type="checkbox" name="onScreenText" checked> Textes à l'écran</label>
+      </div>
+      <div class="actions"><span class="estimate"></span><button type="submit" class="primary">Produire la vidéo</button></div>
+    </form>
+    <div class="job-panel" id="panel-video"></div>
+  </section>
+
+  <!-- ───────── UGC ───────── -->
+  <section id="view-ugc" class="view">
+    <h1>UGC face caméra</h1>
+    <p class="lead">Témoignage authentique en vertical : script parlé + persona → voix → avatar parlant (lip-sync) → sous-titres & hooks.</p>
+    <form id="form-ugc" class="form" data-kind="ugc">
+      <label>Brief <textarea name="brief" required rows="3" placeholder="Ex. : une salariée raconte comment la carte BIG CE lui fait économiser au resto et pour les sorties enfants ; CTA : demandez-la à votre employeur."></textarea></label>
+      <div class="row">
+        <label>Marque <select name="brandId" class="brand-select"></select></label>
+        <label>Durée parlée (s) <input type="number" name="duration" value="25" min="8" max="60"></label>
+        <label>Technique <select name="route"><option value="avatar">Avatar lip-sync (image + voix) — précis, économique</option><option value="native">Parole native (modèle vidéo parle) — plus vivant, plus cher</option></select></label>
+      </div>
+      <div class="row">
+        <label>Portrait du persona (optionnel, sinon généré) <input type="file" name="personaImage" accept="image/*" data-upload="personaImage"></label>
+        <label>Modèle portrait <select name="imageModel" class="model-select" data-task="image"></select></label>
+      </div>
+      <div class="row route-avatar">
+        <label>Modèle voix <select name="ttsModel" class="model-select" data-task="tts" data-default="premium"></select></label>
+        <label>Voix <select name="voice" class="voice-select"></select></label>
+        <label>Modèle avatar <select name="avatarModel" class="model-select" data-task="avatar"></select></label>
+      </div>
+      <div class="row route-native hidden">
+        <label>Modèle vidéo parlant <select name="videoModel" class="model-select" data-task="video-i2v"></select></label>
+      </div>
+      <label class="check"><input type="checkbox" name="subtitles" checked> Sous-titres incrustés</label>
+      <div class="actions"><span class="estimate"></span><button type="submit" class="primary">Produire l'UGC</button></div>
+    </form>
+    <div class="job-panel" id="panel-ugc"></div>
+  </section>
+
+  <!-- ───────── Bibliothèque ───────── -->
+  <section id="view-library" class="view">
+    <h1>Bibliothèque</h1>
+    <div class="toolbar"><select id="lib-filter"><option value="">Tous</option><option value="logo">Logos</option><option value="image">Visuels</option><option value="video">Vidéos</option><option value="ugc">UGC</option><option value="run">Appels directs</option></select><button id="lib-refresh">Actualiser</button></div>
+    <div id="library"></div>
+  </section>
+
+  <!-- ───────── Marques ───────── -->
+  <section id="view-brands" class="view">
+    <h1>Kits de marque</h1>
+    <div class="toolbar"><select id="brand-pick"></select><button id="brand-new">+ Nouvelle marque</button></div>
+    <form id="form-brand" class="form">
+      <div class="row"><label>Nom <input name="name" required></label><label>Slogan <input name="tagline"></label><label>Langue <input name="language" value="fr"></label></div>
+      <label>Description <textarea name="description" rows="2"></textarea></label>
+      <label>Audience <textarea name="audience" rows="2"></textarea></label>
+      <label>Ton <textarea name="tone" rows="2"></textarea></label>
+      <div class="row"><label>Couleur primaire <input type="color" name="primary" value="#0b3d91"></label><label>Secondaire <input type="color" name="secondary" value="#00a3e0"></label><label>Accent <input type="color" name="accent" value="#ffb703"></label><label>Polices <input name="fonts"></label></div>
+      <label>Style visuel (injecté dans les prompts) <textarea name="visualStyle" rows="2"></textarea></label>
+      <label>À éviter <textarea name="avoid" rows="2"></textarea></label>
+      <div class="row"><label>Région <input name="region"></label><label>CTA (séparés par ;) <input name="cta"></label></div>
+      <div class="row"><label>Logo (PNG transparent de préférence) <input type="file" name="logoFile" accept="image/*" data-upload="logo"></label><div id="brand-logo-preview"></div></div>
+      <div class="actions"><button type="button" id="brand-delete" class="danger">Supprimer</button><button type="submit" class="primary">Enregistrer</button></div>
+    </form>
+  </section>
+
+  <!-- ───────── Connexions & modèles ───────── -->
+  <section id="view-connections" class="view">
+    <h1>Connexions API</h1>
+    <p class="lead">Les clés se mettent dans <code>studio/.env</code> (voir <code>.env.example</code>) puis redémarrez le serveur. Elles ne quittent jamais votre machine.</p>
+    <div id="providers"></div>
+    <h2>Catalogue des modèles</h2>
+    <div class="toolbar"><select id="cat-filter"><option value="">Toutes les tâches</option><option value="image">Image</option><option value="image-edit">Retouche</option><option value="video-t2v">Vidéo texte→vidéo</option><option value="video-i2v">Vidéo image→vidéo</option><option value="tts">Voix</option><option value="avatar">Avatar / UGC</option><option value="music">Musique</option><option value="bg-remove">Détourage</option><option value="upscale">Upscale</option><option value="vectorize">Vectorisation</option></select><label class="check"><input type="checkbox" id="cat-os"> Open source seulement</label></div>
+    <div id="catalog"></div>
+    <h2>Appel direct d'un modèle (mode expert)</h2>
+    <form id="form-run" class="form">
+      <div class="row"><label>Modèle <select name="model" id="run-model"></select></label><label>Format <select name="aspect"><option>1:1</option><option>4:5</option><option>9:16</option><option>16:9</option></select></label><label>Durée (s, vidéo) <input type="number" name="duration" value="5" min="3" max="20"></label></div>
+      <label>Prompt / texte <textarea name="prompt" rows="2"></textarea></label>
+      <div class="row"><label>Image source (image→vidéo, retouche, avatar) <input type="file" name="imageUrl" accept="image/*" data-upload="imageUrl"></label><label>Audio source (avatar) <input type="file" name="audioUrl" accept="audio/*" data-upload="audioUrl"></label></div>
+      <div class="actions"><button type="submit" class="primary">Lancer</button></div>
+    </form>
+    <div class="job-panel" id="panel-run"></div>
+  </section>
+</main>
+
+<div id="lightbox" class="lightbox hidden"><div class="lightbox-inner"></div></div>
+<script src="app.js"></script>
+</body>
+</html>
