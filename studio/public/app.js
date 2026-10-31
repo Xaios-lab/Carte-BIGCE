@@ -37,6 +37,7 @@ async function init() {
   wireBrandForm();
   wireRunForm();
   wireLibrary();
+  wireKeysForm();
   const v = location.hash.slice(1);
   if (v && $(`#view-${v}`)) showView(v);
 }
@@ -44,7 +45,7 @@ async function init() {
 function renderModeBadge() {
   const b = $("#mode-badge");
   const st = state.status;
-  if (st.mockMode) { b.className = "mode-badge demo"; b.innerHTML = `<b>Mode DÉMO</b><br>Aucune clé fournisseur : les rendus sont factices. Ajoutez <code>FAL_KEY</code> dans <code>studio/.env</code>.`; }
+  if (st.mockMode) { b.className = "mode-badge demo"; b.innerHTML = `<b>Mode DÉMO</b><br>Aucune clé fournisseur : les rendus sont factices. Collez vos clés dans <a href="#connections" onclick="showView('connections')">Connexions</a>.`; }
   else { b.className = "mode-badge live"; b.innerHTML = `<b>Mode PRODUCTION</b><br>Fournisseur : ${esc(st.defaultProvider)}<br>Claude : ${st.claude.available ? esc(st.claude.model) : "hors ligne"}`; }
 }
 
@@ -219,7 +220,7 @@ async function loadDashboard() {
   const st = state.status;
   const alert = $("#dash-alert");
   alert.innerHTML = st.mockMode
-    ? `<div class="alert warn"><b>Mode démo.</b> Pour générer de vraies images et vidéos, créez une clé sur <a href="https://fal.ai/dashboard/keys" target="_blank">fal.ai</a> (recommandé) et/ou <a href="https://replicate.com/account/api-tokens" target="_blank">Replicate</a>, puis une clé <a href="https://console.anthropic.com/settings/keys" target="_blank">Anthropic</a> pour le directeur créatif. Copiez-les dans <code>studio/.env</code> et redémarrez. Détails dans l'onglet <a href="#connections" onclick="showView('connections')">Connexions</a>.</div>`
+    ? `<div class="alert warn"><b>Mode démo.</b> Pour générer de vraies images et vidéos, créez une clé sur <a href="https://fal.ai/dashboard/keys" target="_blank">fal.ai</a> (recommandé) et/ou <a href="https://replicate.com/account/api-tokens" target="_blank">Replicate</a>, puis une clé <a href="https://console.anthropic.com/settings/keys" target="_blank">Anthropic</a> pour le directeur créatif. Collez-les ensuite dans l'onglet <a href="#connections" onclick="showView('connections')"><b>Connexions & modèles</b></a> : aucun fichier à modifier, aucun redémarrage.</div>`
     : `<div class="alert ok">Production active via <b>${esc(st.defaultProvider)}</b>${st.claude.available ? ` · directeur créatif <b>${esc(st.claude.model)}</b>` : " · directeur créatif hors ligne (ajoutez ANTHROPIC_API_KEY pour des scripts sur mesure)"}.</div>`;
   const jobs = await api("/api/jobs");
   const total = jobs.reduce((s, j) => s + (j.cost || 0), 0);
@@ -300,6 +301,25 @@ function wireRunForm() {
     const params = { prompt: fd.get("prompt"), text: fd.get("prompt"), aspect: fd.get("aspect"), duration: Number(fd.get("duration")), ...(f._uploads || {}) };
     if (params.imageUrl) params.refImages = [params.imageUrl];
     try { const job = await api("/api/run", { method: "POST", body: { model: fd.get("model"), params } }); watchJob(job, $("#panel-run")); } catch (err) { alert(err.message); }
+  });
+}
+
+// ───────── Clés API
+async function wireKeysForm() {
+  const f = $("#form-keys");
+  const fill = (masked) => { for (const el of f.querySelectorAll("input")) { el.value = ""; el.placeholder = masked[el.name] ? `enregistrée : ${masked[el.name]}` : el.placeholder; } };
+  fill(await api("/api/keys"));
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const body = {}; for (const el of f.querySelectorAll("input")) if (el.value.trim()) body[el.name] = el.value.trim();
+    if (!Object.keys(body).length) return;
+    try {
+      const masked = await api("/api/keys", { method: "POST", body });
+      fill(masked);
+      [state.status, state.catalog] = await Promise.all([api("/api/status"), api("/api/catalog")]);
+      renderModeBadge(); renderProviders(); fillModelSelects(); loadDashboard();
+      $("#keys-msg").innerHTML = state.status.mockMode ? "Clés enregistrées." : "<b>Clés enregistrées — mode production actif.</b>";
+    } catch (err) { $("#keys-msg").textContent = `Erreur : ${err.message}`; }
   });
 }
 

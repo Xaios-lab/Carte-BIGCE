@@ -179,7 +179,15 @@
   <!-- ───────── Connexions & modèles ───────── -->
   <section id="view-connections" class="view">
     <h1>Connexions API</h1>
-    <p class="lead">Les clés se mettent dans <code>studio/.env</code> (voir <code>.env.example</code>) puis redémarrez le serveur. Elles ne quittent jamais votre machine.</p>
+    <p class="lead">Collez vos clés ci-dessous : elles sont enregistrées sur votre machine (fichier <code>studio/.env</code>) et prises en compte immédiatement. Elles ne sont jamais envoyées ailleurs qu'au fournisseur concerné.</p>
+    <form id="form-keys" class="form">
+      <div class="row">
+        <label>Clé fal.ai <small>(images, vidéos, voix — <a href="https://fal.ai/dashboard/keys" target="_blank">créer une clé</a>)</small><input name="FAL_KEY" placeholder="coller la clé fal.ai ici" autocomplete="off"></label>
+        <label>Clé Anthropic <small>(directeur créatif — <a href="https://console.anthropic.com/settings/keys" target="_blank">créer une clé</a>)</small><input name="ANTHROPIC_API_KEY" placeholder="sk-ant-…" autocomplete="off"></label>
+        <label>Jeton Replicate <small>(optionnel — <a href="https://replicate.com/account/api-tokens" target="_blank">créer un jeton</a>)</small><input name="REPLICATE_API_TOKEN" placeholder="r8_…" autocomplete="off"></label>
+      </div>
+      <div class="actions"><span id="keys-msg" class="estimate"></span><button type="submit" class="primary">Enregistrer les clés</button></div>
+    </form>
     <div id="providers"></div>
     <h2>Catalogue des modèles</h2>
     <div class="toolbar"><select id="cat-filter"><option value="">Toutes les tâches</option><option value="image">Image</option><option value="image-edit">Retouche</option><option value="video-t2v">Vidéo texte→vidéo</option><option value="video-i2v">Vidéo image→vidéo</option><option value="tts">Voix</option><option value="avatar">Avatar / UGC</option><option value="music">Musique</option><option value="bg-remove">Détourage</option><option value="upscale">Upscale</option><option value="vectorize">Vectorisation</option></select><label class="check"><input type="checkbox" id="cat-os"> Open source seulement</label></div>

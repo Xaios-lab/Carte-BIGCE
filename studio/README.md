@@ -24,14 +24,21 @@ bibliothèque.
 
 ## Démarrage
 
+**Sans ligne de commande** : installez [Node.js](https://nodejs.org) (bouton LTS), puis
+double-cliquez sur `Demarrer-Windows.bat` (Windows) ou `Demarrer-Mac.command` (Mac).
+La première fois, l'installation prend une à deux minutes, puis le navigateur s'ouvre
+sur http://localhost:3777. Collez vos clés dans l'onglet **Connexions & modèles**.
+
+**En ligne de commande** :
+
 ```bash
 cd studio
 npm install
-cp .env.example .env     # puis renseignez vos clés (voir ci-dessous)
 npm start                # http://localhost:3777
 ```
 
-Prérequis : Node.js ≥ 20.12 et `ffmpeg` (montage vidéo, habillage, sous-titres).
+Prérequis : Node.js ≥ 20.12. ffmpeg est embarqué (paquet `ffmpeg-static`) ; la version
+du système est utilisée si elle existe.
 
 Sans aucune clé, le studio tourne en **mode démo** : toute la chaîne fonctionne
 (scripts, montage, sous-titres, exports) avec des rendus factices, pour prendre en main
@@ -44,6 +51,10 @@ l'outil sans dépenser.
 | `FAL_KEY` | Génération image / vidéo / voix / avatar / musique | **Oui** (recommandé) | https://fal.ai/dashboard/keys |
 | `ANTHROPIC_API_KEY` | Directeur créatif (prompts, scripts, storyboards sur mesure) | Fortement conseillé | https://console.anthropic.com/settings/keys |
 | `REPLICATE_API_TOKEN` | Secours + Recraft V3 **SVG** (logo vectoriel natif) | Optionnel | https://replicate.com/account/api-tokens |
+
+Les clés se saisissent dans l'onglet **Connexions & modèles** de l'interface (elles sont
+écrites dans `studio/.env`, prises en compte sans redémarrage, jamais affichées en
+clair). On peut aussi éditer `.env` à la main (modèle : `.env.example`).
 
 fal.ai a été retenu comme fournisseur principal : un seul compte donne accès à tous les
 modèles ci-dessous, en paiement à l'usage, avec les tarifs les plus bas relevés sur les

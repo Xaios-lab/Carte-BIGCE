@@ -7,6 +7,7 @@ import { publicCatalog, byId, DEFAULTS, estimateCost } from "./catalog.js";
 import { createJob, listJobs, getJob, deleteJob, bus } from "./jobs.js";
 import { listBrands, getBrand, saveBrand, deleteBrand } from "./brands.js";
 import { saveUpload } from "./storage.js";
+import { readMasked, saveKeys, clearKey } from "./keys.js";
 import { generate } from "./providers/index.js";
 import { claudeAvailable, CLAUDE_MODEL } from "./director.js";
 import * as logo from "./pipelines/logo.js";
@@ -27,6 +28,10 @@ const wrap = (fn) => (req, res) => Promise.resolve(fn(req, res)).catch((e) => re
 app.get("/api/status", (req, res) => {
   res.json({ providers: providerStatus(), defaultProvider: defaultProvider(), claude: { available: claudeAvailable(), model: CLAUDE_MODEL }, usdToXpf: USD_TO_XPF, mockMode: defaultProvider() === "mock", version: JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8")).version });
 });
+// ── Clés API (écrites dans studio/.env, jamais renvoyées en clair)
+app.get("/api/keys", (req, res) => res.json(readMasked()));
+app.post("/api/keys", wrap((req, res) => res.json(saveKeys(req.body))));
+app.delete("/api/keys/:name", (req, res) => res.json(clearKey(req.params.name)));
 app.get("/api/catalog", (req, res) => res.json({ models: publicCatalog(), defaults: DEFAULTS }));
 
 // ── Marques
